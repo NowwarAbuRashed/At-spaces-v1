@@ -1,0 +1,507 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  customer
+  vendor
+  admin
+}
+
+enum UserStatus {
+  pending
+  active
+  suspended
+}
+
+enum BranchStatus {
+  pending
+  active
+  suspended
+  archived
+}
+
+enum PriceUnit {
+  hour
+  half_day
+  full_day
+  day
+  week
+  month
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  card
+  cash
+  apple_pay
+}
+
+enum PaymentProvider {
+  none
+  stripe
+  myfatoorah
+}
+
+enum ApprovalRequestType {
+  vendor_registration
+  capacity_request
+  branch_update
+  vendor_service_update
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum OtpPurpose {
+  login
+  signup
+  verify
+  reset_password
+}
+
+enum ConversationMessageRole {
+  customer
+  assistant
+  system
+}
+
+enum SecurityEventType {
+  login_failed
+  login_success
+  lockout
+  mfa_success
+  mfa_failed
+  password_reset_requested
+  password_reset_completed
+  session_revoked
+  approval_reviewed
+  branch_status_changed
+  vendor_status_changed
+  report_exported
+}
+
+enum SecurityEventOutcome {
+  success
+  failure
+  blocked
+}
+
+enum NotificationType {
+  booking
+  approval
+  security
+  general
+}
+
+model User {
+  id                       Int               @id @default(autoincrement())
+  role                     Role              @default(customer)
+  fullName                 String            @map("full_name")
+  email                    String?           @unique
+  phoneNumber              String?           @unique @map("phone_number")
+  passwordHash             String?           @map("password_hash")
+  status                   UserStatus        @default(active)
+  isEmailVerified          Boolean           @default(false) @map("is_email_verified")
+  isPhoneVerified          Boolean           @default(false) @map("is_phone_verified")
+  mfaEnabled               Boolean           @default(false) @map("mfa_enabled")
+  mfaSecretEnc             String?           @map("mfa_secret_enc")
+  backupCodes              Json?             @map("backup_codes")
+  lastLoginAt              DateTime?         @map("last_login_at")
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+  deletedAt                DateTime?         @map("deleted_at")
+  ownedBranches            Branch[]          @relation("BranchOwner")
+  vendorServices           VendorService[]   @relation("VendorUser")
+  customerBookings         Booking[]         @relation("BookingCustomer")
+  otpSessions              OtpSession[]
+  conversations            Conversation[]
+  requestedApprovalRequests ApprovalRequest[] @relation("ApprovalRequester")
+  reviewedApprovalRequests ApprovalRequest[] @relation("ApprovalReviewer")
+  securityEvents           SecurityEvent[]
+  auditLogs                AuditLog[]        @relation("AuditActor")
+  notifications            Notification[]
+
+  @@index([role])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Branch {
+  id              Int             @id @default(autoincrement())
+  ownerId         Int?            @map("owner_id")
+  name            String
+  description     String?
+  city            String
+  address         String
+  latitude        Decimal?        @db.Decimal(9, 6)
+  longitude       Decimal?        @db.Decimal(9, 6)
+  status          BranchStatus    @default(pending)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
+  owner           User?           @relation("BranchOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  vendorServices  VendorService[]
+  branchFacilities BranchFacility[]
+  bookings        Booking[]
+  approvalRequests ApprovalRequest[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([city])
+  @@index([deletedAt])
+  @@map("branches")
+}
+
+model Service {
+  id              Int             @id @default(autoincrement())
+  name            String          @unique
+  description     String?
+  unit            String
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  serviceImages   ServiceImage[]
+  vendorServices  VendorService[]
+  serviceFeatures ServiceFeature[]
+
+  @@map("services")
+}
+
+model ServiceImage {
+  id         Int      @id @default(autoincrement())
+  serviceId  Int      @map("service_id")
+  url        String
+  storageKey String?  @map("storage_key")
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([serviceId])
+  @@map("service_images")
+}
+
+model VendorService {
+  id                 Int                @id @default(autoincrement())
+  vendorId           Int                @map("vendor_id")
+  branchId           Int                @map("branch_id")
+  serviceId          Int                @map("service_id")
+  name               String?
+  description        String?
+  pricePerUnit       Decimal            @db.Decimal(10, 2) @map("price_per_unit")
+  priceUnit          PriceUnit          @default(hour) @map("price_unit")
+  maxCapacity        Int                @default(1) @map("max_capacity")
+  isAvailable        Boolean            @default(true) @map("is_available")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  deletedAt          DateTime?          @map("deleted_at")
+  vendor             User               @relation("VendorUser", fields: [vendorId], references: [id], onDelete: Restrict)
+  branch             Branch             @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  service            Service            @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  availability       Availability[]
+  bookings           Booking[]
+  vendorServiceImages VendorServiceImage[]
+  approvalRequests   ApprovalRequest[]
+
+  @@unique([vendorId, branchId, serviceId], map: "vendor_services_vendor_branch_service_key")
+  @@index([branchId])
+  @@index([serviceId])
+  @@index([deletedAt])
+  @@map("vendor_services")
+}
+
+model VendorServiceImage {
+  id              Int           @id @default(autoincrement())
+  vendorServiceId Int           @map("vendor_service_id")
+  url             String
+  storageKey      String?       @map("storage_key")
+  isPrimary       Boolean       @default(false) @map("is_primary")
+  sortOrder       Int           @default(0) @map("sort_order")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  vendorService   VendorService @relation(fields: [vendorServiceId], references: [id], onDelete: Restrict)
+
+  @@index([vendorServiceId])
+  @@map("vendor_service_images")
+}
+
+model Availability {
+  id             Int           @id @default(autoincrement())
+  vendorServiceId Int          @map("vendor_service_id")
+  slotStart      DateTime      @map("slot_start")
+  slotEnd        DateTime      @map("slot_end")
+  availableUnits Int           @map("available_units")
+  isBlocked      Boolean       @default(false) @map("is_blocked")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+  vendorService  VendorService @relation(fields: [vendorServiceId], references: [id], onDelete: Restrict)
+
+  @@unique([vendorServiceId, slotStart, slotEnd], map: "availability_vendor_service_slot_key")
+  @@index([slotStart, slotEnd])
+  @@index([deletedAt])
+  @@map("availability")
+}
+
+model Booking {
+  id                 Int           @id @default(autoincrement())
+  bookingNumber      String        @unique @map("booking_number")
+  customerId         Int           @map("customer_id")
+  vendorServiceId    Int           @map("vendor_service_id")
+  branchId           Int           @map("branch_id")
+  startTime          DateTime      @map("start_time")
+  endTime            DateTime      @map("end_time")
+  quantity           Int           @default(1)
+  totalPrice         Decimal       @db.Decimal(10, 2) @map("total_price")
+  currency           String        @default("JOD")
+  status             BookingStatus @default(pending)
+  paymentStatus      PaymentStatus @default(pending) @map("payment_status")
+  paymentMethod      PaymentMethod? @map("payment_method")
+  cancelledAt        DateTime?     @map("cancelled_at")
+  cancellationReason String?       @map("cancellation_reason")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+  customer           User          @relation("BookingCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  vendorService      VendorService @relation(fields: [vendorServiceId], references: [id], onDelete: Restrict)
+  branch             Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  payments           Payment[]
+
+  @@index([customerId, createdAt(sort: Desc)])
+  @@index([vendorServiceId, startTime, endTime])
+  @@index([branchId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("bookings")
+}
+
+model Payment {
+  id          Int             @id @default(autoincrement())
+  bookingId   Int             @map("booking_id")
+  provider    PaymentProvider @default(none)
+  providerRef String?         @map("provider_ref")
+  method      PaymentMethod
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    String          @default("JOD")
+  status      PaymentStatus   @default(pending)
+  paidAt      DateTime?       @map("paid_at")
+  metadata    Json?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  deletedAt   DateTime?       @map("deleted_at")
+  booking     Booking         @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("payments")
+}
+
+model ApprovalRequest {
+  id              Int                 @id @default(autoincrement())
+  type            ApprovalRequestType
+  status          ApprovalStatus      @default(pending)
+  branchId        Int?                @map("branch_id")
+  vendorServiceId Int?                @map("vendor_service_id")
+  requestedById   Int?                @map("requested_by_id")
+  reviewedById    Int?                @map("reviewed_by_id")
+  payload         Json?
+  payloadHmac     String?             @map("payload_hmac")
+  reason          String?
+  reviewedAt      DateTime?           @map("reviewed_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  deletedAt       DateTime?           @map("deleted_at")
+  branch          Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  vendorService   VendorService?      @relation(fields: [vendorServiceId], references: [id], onDelete: SetNull)
+  requestedBy     User?               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+  reviewedBy      User?               @relation("ApprovalReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, type])
+  @@index([requestedById])
+  @@index([branchId])
+  @@index([vendorServiceId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("approval_requests")
+}
+
+model OtpSession {
+  id          Int        @id @default(autoincrement())
+  userId      Int?       @map("user_id")
+  phoneNumber String?    @map("phone_number")
+  email       String?
+  purpose     OtpPurpose
+  codeHash    String     @map("code_hash")
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5) @map("max_attempts")
+  expiresAt   DateTime   @map("expires_at")
+  consumedAt  DateTime?  @map("consumed_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([phoneNumber, purpose])
+  @@index([email, purpose])
+  @@index([expiresAt])
+  @@map("otp_sessions")
+}
+
+model Facility {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  icon            String?
+  description     String?
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  branchFacilities BranchFacility[]
+
+  @@map("facilities")
+}
+
+model BranchFacility {
+  id          Int      @id @default(autoincrement())
+  branchId    Int      @map("branch_id")
+  facilityId  Int      @map("facility_id")
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+
+  @@unique([branchId, facilityId], map: "branch_facilities_branch_facility_key")
+  @@index([facilityId])
+  @@map("branch_facilities")
+}
+
+model Feature {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  serviceFeatures ServiceFeature[]
+
+  @@map("features")
+}
+
+model ServiceFeature {
+  id         Int      @id @default(autoincrement())
+  serviceId  Int      @map("service_id")
+  featureId  Int      @map("feature_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  feature    Feature  @relation(fields: [featureId], references: [id], onDelete: Restrict)
+
+  @@unique([serviceId, featureId], map: "service_features_service_feature_key")
+  @@index([featureId])
+  @@map("service_features")
+}
+
+model Conversation {
+  id        Int                     @id @default(autoincrement())
+  userId    Int                     @map("user_id")
+  title     String?
+  createdAt DateTime                @default(now()) @map("created_at")
+  updatedAt DateTime                @updatedAt @map("updated_at")
+  deletedAt DateTime?               @map("deleted_at")
+  user      User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  messages  Message[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             Int                     @id @default(autoincrement())
+  conversationId Int                     @map("conversation_id")
+  role           ConversationMessageRole
+  content        String
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+  deletedAt      DateTime?               @map("deleted_at")
+  conversation   Conversation            @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+
+  @@index([conversationId, createdAt])
+  @@index([deletedAt])
+  @@map("messages")
+}
+
+model SecurityEvent {
+  id        Int                  @id @default(autoincrement())
+  eventType SecurityEventType    @map("event_type")
+  userId    Int?                 @map("user_id")
+  emailHash String?              @map("email_hash")
+  ipAddress String?              @map("ip_address")
+  userAgent String?              @map("user_agent")
+  outcome   SecurityEventOutcome
+  metadata  Json?
+  createdAt DateTime             @default(now()) @map("created_at")
+  user      User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([ipAddress, createdAt(sort: Desc)])
+  @@map("security_events")
+}
+
+model AuditLog {
+  id         Int       @id @default(autoincrement())
+  actorId    Int?      @map("actor_id")
+  actorRole  Role?     @map("actor_role")
+  action     String
+  targetType String    @map("target_type")
+  targetId   Int?      @map("target_id")
+  oldValue   Json?     @map("old_value")
+  newValue   Json?     @map("new_value")
+  ipAddress  String?   @map("ip_address")
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  actor      User?     @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_log")
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int              @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
+}

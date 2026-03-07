@@ -1,0 +1,1608 @@
+openapi: 3.0.3
+info:
+  title: At Spaces API
+  version: 1.0.0
+  description: |
+    API contract for At Spaces (NestJS + Prisma + PostgreSQL + Redis).
+    Roles: customer, vendor, admin. Access token in JSON, refresh token in HttpOnly cookie.
+servers:
+  - url: http://localhost:3000/api
+  - url: https://<domain>/api
+
+tags:
+  - name: System
+  - name: Auth - Customer
+  - name: Auth - Vendor
+  - name: Auth - Admin
+  - name: Users
+  - name: Services
+  - name: Branches
+  - name: Availability
+  - name: Bookings
+  - name: Vendors
+  - name: Admin
+  - name: Notifications
+  - name: Uploads
+  - name: AI
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code: { type: string, example: VALIDATION_ERROR }
+        message: { type: string, example: Human readable message }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string, example: startTime }
+              issue: { type: string, example: startTime must be before endTime }
+
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 20 }
+        total: { type: integer, example: 123 }
+        hasNext: { type: boolean, example: true }
+
+    PagedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { type: object }
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        hasNext: { type: boolean }
+
+    UserPublic:
+      type: object
+      properties:
+        id: { type: integer, example: 123 }
+        role: { type: string, enum: [customer, vendor, admin] }
+        fullName: { type: string, example: "John Doe" }
+
+    AuthLoginResponse:
+      type: object
+      properties:
+        accessToken: { type: string, example: "jwt" }
+        user:
+          $ref: '#/components/schemas/UserPublic'
+
+    RegisterEmailRequest:
+      type: object
+      required: [fullName, email, password]
+      properties:
+        fullName: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    RegisterPhoneRequest:
+      type: object
+      required: [fullName, phoneNumber]
+      properties:
+        fullName: { type: string }
+        phoneNumber: { type: string, example: "+9627xxxxxxxx" }
+
+    VerifyOtpRequest:
+      type: object
+      required: [phoneNumber, otpCode, purpose]
+      properties:
+        phoneNumber: { type: string, example: "+9627xxxxxxxx" }
+        otpCode: { type: string, example: "123456" }
+        purpose: { type: string, enum: [login, signup, verify] }
+
+    ResendOtpRequest:
+      type: object
+      required: [phoneNumber, purpose]
+      properties:
+        phoneNumber: { type: string, example: "+9627xxxxxxxx" }
+        purpose: { type: string, enum: [login, signup, verify] }
+
+    LoginEmailRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetPasswordRequest:
+      type: object
+      required: [resetToken, newPassword]
+      properties:
+        resetToken: { type: string }
+        newPassword: { type: string, format: password }
+
+    AdminResetPasswordRequest:
+      type: object
+      required: [resetToken, newPassword, totpCode]
+      properties:
+        resetToken: { type: string }
+        newPassword: { type: string, format: password }
+        totpCode: { type: string, example: "123456" }
+
+    AdminLoginRequest:
+      type: object
+      required: [email, password, captchaToken]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+        captchaToken: { type: string }
+
+    AdminLoginResponse:
+      type: object
+      properties:
+        preAuthToken: { type: string }
+        mfaRequired: { type: boolean, example: true }
+
+    AdminMfaVerifyRequest:
+      type: object
+      required: [preAuthToken, totpCode]
+      properties:
+        preAuthToken: { type: string }
+        totpCode: { type: string, example: "123456" }
+
+    Service:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Hot Desk" }
+        unit: { type: string, example: "seat" }
+
+    BranchListItem:
+      type: object
+      properties:
+        id: { type: integer, example: 10 }
+        name: { type: string, example: "Branch A" }
+        city: { type: string, example: "Amman" }
+        address: { type: string, example: "..." }
+
+    FacilityPublic:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "WiFi" }
+        icon: { type: string, example: "wifi" }
+        isAvailable: { type: boolean, example: true }
+        description: { type: string, nullable: true }
+
+    VendorServiceInBranch:
+      type: object
+      properties:
+        vendorServiceId: { type: integer, example: 55 }
+        serviceId: { type: integer, example: 1 }
+        name: { type: string, example: "Hot Desk" }
+        pricePerUnit: { type: number, format: float, example: 5.0 }
+        priceUnit: { type: string, enum: [hour, day, week, month], example: hour }
+        maxCapacity: { type: integer, example: 50 }
+        isAvailable: { type: boolean, example: true }
+
+    BranchDetails:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        city: { type: string }
+        address: { type: string }
+        latitude: { type: number, format: float, nullable: true }
+        longitude: { type: number, format: float, nullable: true }
+        facilities:
+          type: array
+          items: { $ref: '#/components/schemas/FacilityPublic' }
+        services:
+          type: array
+          items: { $ref: '#/components/schemas/VendorServiceInBranch' }
+
+    AvailabilityCheckRequest:
+      type: object
+      required: [vendorServiceId, startTime, endTime, quantity]
+      properties:
+        vendorServiceId: { type: integer, example: 55 }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        quantity: { type: integer, minimum: 1, example: 2 }
+
+    AvailabilityCheckResponse:
+      type: object
+      properties:
+        available: { type: boolean, example: true }
+        price: { type: number, format: float, example: 20.0 }
+
+    BookingPreviewResponse:
+      type: object
+      properties:
+        totalPrice: { type: number, format: float, example: 20.0 }
+        currency: { type: string, example: JOD }
+
+    CreateBookingRequest:
+      allOf:
+        - $ref: '#/components/schemas/AvailabilityCheckRequest'
+        - type: object
+          required: [paymentMethod]
+          properties:
+            paymentMethod: { type: string, enum: [cash, card, apple_pay] }
+
+    CreateBookingResponse:
+      type: object
+      properties:
+        bookingId: { type: integer, example: 900 }
+        bookingNumber: { type: string, example: "BKG-20260305-0001" }
+        totalPrice: { type: number, format: float, example: 20.0 }
+        status: { type: string, example: pending }
+        paymentStatus: { type: string, example: pending }
+
+    BookingListItem:
+      type: object
+      properties:
+        id: { type: integer }
+        bookingNumber: { type: string }
+        branchName: { type: string }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        status: { type: string }
+
+    BookingDetails:
+      allOf:
+        - $ref: '#/components/schemas/BookingListItem'
+        - type: object
+          properties:
+            quantity: { type: integer }
+            totalPrice: { type: number, format: float }
+            vendorServiceId: { type: integer }
+
+    VendorBranchUpdateRequest:
+      type: object
+      required: [name, city, address]
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        city: { type: string }
+        address: { type: string }
+        latitude: { type: number, format: float, nullable: true }
+        longitude: { type: number, format: float, nullable: true }
+
+    UpdatePriceRequest:
+      type: object
+      required: [pricePerUnit, priceUnit]
+      properties:
+        pricePerUnit: { type: number, format: float }
+        priceUnit: { type: string, enum: [hour, day, week, month] }
+
+    CapacityRequestRequest:
+      type: object
+      required: [newCapacity, reason]
+      properties:
+        newCapacity: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 3 }
+
+    AvailabilityUpsertRequest:
+      type: object
+      required: [vendorServiceId, date, slots]
+      properties:
+        vendorServiceId: { type: integer }
+        date: { type: string, format: date }
+        slots:
+          type: array
+          items:
+            type: object
+            required: [start, end, availableUnits]
+            properties:
+              start: { type: string, example: "10:00" }
+              end: { type: string, example: "12:00" }
+              availableUnits: { type: integer, minimum: 0 }
+
+    UpdateBookingStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [completed, no_show] }
+
+    RejectReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 10 }
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [active, suspended] }
+
+    ReportExportRequest:
+      type: object
+      required: [reportType, format, filters]
+      properties:
+        reportType: { type: string, example: revenue }
+        format: { type: string, enum: [csv, pdf, xlsx] }
+        filters:
+          type: object
+          additionalProperties: true
+
+    ReportExportResponse:
+      type: object
+      properties:
+        url: { type: string, example: "https://s3-presigned-url" }
+        expiresIn: { type: integer, example: 300 }
+
+    NotificationItem:
+      type: object
+      properties:
+        id: { type: integer }
+        type: { type: string, example: booking_confirmed }
+        title: { type: string }
+        body: { type: string }
+        isRead: { type: boolean, example: false }
+        createdAt: { type: string, format: date-time }
+
+    UploadImageResponse:
+      type: object
+      properties:
+        url: { type: string }
+        key: { type: string }
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /version:
+    get:
+      tags: [System]
+      summary: API version
+      responses:
+        '200':
+          description: Version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: string, example: 1.0.0 }
+
+  /auth/customer/register-email:
+    post:
+      tags: [Auth - Customer]
+      summary: Register customer with email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterEmailRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId: { type: integer }
+                  message: { type: string }
+
+  /auth/customer/register-phone:
+    post:
+      tags: [Auth - Customer]
+      summary: Register customer with phone (OTP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterPhoneRequest' }
+      responses:
+        '202':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/customer/verify-otp:
+    post:
+      tags: [Auth - Customer]
+      summary: Verify OTP for customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VerifyOtpRequest' }
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: Refresh cookie (HttpOnly)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthLoginResponse' }
+
+  /auth/customer/login-email:
+    post:
+      tags: [Auth - Customer]
+      summary: Customer login (email/password)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginEmailRequest' }
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: Refresh cookie (HttpOnly)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthLoginResponse' }
+
+  /auth/customer/resend-otp:
+    post:
+      tags: [Auth - Customer]
+      summary: Resend OTP to phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResendOtpRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/customer/refresh:
+    post:
+      tags: [Auth - Customer]
+      summary: Refresh access token (uses refresh cookie)
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+
+  /auth/customer/logout:
+    post:
+      tags: [Auth - Customer]
+      summary: Logout (revoke refresh + clear cookie)
+      responses:
+        '200':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: Clear refresh cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/vendor/login:
+    post:
+      tags: [Auth - Vendor]
+      summary: Vendor login (email/password)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginEmailRequest' }
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: Refresh cookie (HttpOnly)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthLoginResponse' }
+
+  /auth/vendor/refresh:
+    post:
+      tags: [Auth - Vendor]
+      summary: Vendor refresh access token
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+
+  /auth/vendor/logout:
+    post:
+      tags: [Auth - Vendor]
+      summary: Vendor logout
+      responses:
+        '200':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: Clear refresh cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /vendors/register:
+    post:
+      tags: [Vendors]
+      summary: Vendor registration (requires admin approval)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password, branch]
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                branch:
+                  type: object
+                  required: [name, city, address]
+                  properties:
+                    name: { type: string }
+                    city: { type: string }
+                    address: { type: string }
+                    latitude: { type: number, format: float, nullable: true }
+                    longitude: { type: number, format: float, nullable: true }
+      responses:
+        '202':
+          description: Submitted for approval
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /admin/auth/login:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin login step 1 (password + captcha)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminLoginRequest' }
+      responses:
+        '200':
+          description: Pre-auth token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminLoginResponse' }
+
+  /admin/auth/mfa/verify:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin MFA verify step 2 (TOTP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminMfaVerifyRequest' }
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: Refresh cookie (HttpOnly)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthLoginResponse' }
+
+  /admin/auth/refresh:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin refresh access token
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+
+  /admin/auth/logout:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin logout
+      responses:
+        '200':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: Clear refresh cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/customer/forgot-password:
+    post:
+      tags: [Auth - Customer]
+      summary: Customer forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/customer/reset-password:
+    post:
+      tags: [Auth - Customer]
+      summary: Customer reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordRequest' }
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/vendor/forgot-password:
+    post:
+      tags: [Auth - Vendor]
+      summary: Vendor forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/vendor/reset-password:
+    post:
+      tags: [Auth - Vendor]
+      summary: Vendor reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordRequest' }
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /admin/auth/forgot-password:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /admin/auth/reset-password:
+    post:
+      tags: [Auth - Admin]
+      summary: Admin reset password (requires TOTP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminResetPasswordRequest' }
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get my profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  fullName: { type: string }
+                  email: { type: string, nullable: true }
+                  phoneNumber: { type: string, nullable: true }
+                  role: { type: string, enum: [customer, vendor, admin] }
+    put:
+      tags: [Users]
+      summary: Update my profile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email, nullable: true }
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  fullName: { type: string }
+                  email: { type: string, nullable: true }
+                  phoneNumber: { type: string, nullable: true }
+
+  /services:
+    get:
+      tags: [Services]
+      summary: List services
+      responses:
+        '200':
+          description: Services
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Service' }
+
+  /services/{id}:
+    get:
+      tags: [Services]
+      summary: Get service details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Service
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Service' }
+
+  /branches:
+    get:
+      tags: [Branches]
+      summary: List branches (filters + pagination)
+      parameters:
+        - name: city
+          in: query
+          required: false
+          schema: { type: string }
+        - name: serviceId
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged branches
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/BranchListItem' }
+
+  /branches/search:
+    get:
+      tags: [Branches]
+      summary: Search branches by query string
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged branches
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/BranchListItem' }
+
+  /branches/{id}:
+    get:
+      tags: [Branches]
+      summary: Branch details (facilities + services)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Branch details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BranchDetails' }
+
+  /facilities:
+    get:
+      tags: [Branches]
+      summary: Facilities catalog (public)
+      responses:
+        '200':
+          description: Facilities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    icon: { type: string, nullable: true }
+
+  /features:
+    get:
+      tags: [Branches]
+      summary: Features catalog (public)
+      responses:
+        '200':
+          description: Features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    icon: { type: string, nullable: true }
+
+  /availability/check:
+    post:
+      tags: [Availability]
+      summary: Check availability + price
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AvailabilityCheckRequest' }
+      responses:
+        '200':
+          description: Availability
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AvailabilityCheckResponse' }
+
+  /bookings/preview:
+    post:
+      tags: [Bookings]
+      summary: Preview booking price (no booking created)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AvailabilityCheckRequest' }
+      responses:
+        '200':
+          description: Price preview
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingPreviewResponse' }
+
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Create booking
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookingRequest' }
+      responses:
+        '201':
+          description: Created booking
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreateBookingResponse' }
+
+  /bookings/my:
+    get:
+      tags: [Bookings]
+      summary: List my bookings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: My bookings
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/BookingListItem' }
+
+  /bookings/{id}:
+    get:
+      tags: [Bookings]
+      summary: Booking details (ownership required)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Booking details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingDetails' }
+
+  /bookings/{id}/cancel:
+    post:
+      tags: [Bookings]
+      summary: Cancel booking
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /bookings/{id}/calendar.ics:
+    get:
+      tags: [Bookings]
+      summary: Export booking to calendar (ICS)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ICS calendar file
+          content:
+            text/calendar:
+              schema:
+                type: string
+
+  /vendors/dashboard:
+    get:
+      tags: [Vendors]
+      summary: Vendor dashboard overview
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todayOccupancy: { type: integer }
+                  upcomingBookings: { type: integer }
+                  branchStatus: { type: string, enum: [calm, moderate, busy] }
+
+  /vendors/branches/me:
+    get:
+      tags: [Vendors]
+      summary: Vendor branches (owned)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Branches
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/BranchListItem' }
+
+  /vendors/branches/{id}:
+    put:
+      tags: [Vendors]
+      summary: Update vendor branch info
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VendorBranchUpdateRequest' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BranchDetails' }
+
+  /vendors/vendor-services:
+    get:
+      tags: [Vendors]
+      summary: List vendor services
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: branchId
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged vendor services
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /vendors/vendor-services/{id}:
+    get:
+      tags: [Vendors]
+      summary: Vendor service details
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Vendor service
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VendorServiceInBranch' }
+
+  /vendors/vendor-services/{id}/price:
+    put:
+      tags: [Vendors]
+      summary: Update vendor service price
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePriceRequest' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VendorServiceInBranch' }
+
+  /vendors/vendor-services/{id}/capacity-request:
+    post:
+      tags: [Vendors]
+      summary: Create capacity change request (approval)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CapacityRequestRequest' }
+      responses:
+        '202':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId: { type: integer }
+                  status: { type: string, example: pending }
+
+  /vendors/availability:
+    put:
+      tags: [Vendors]
+      summary: Upsert availability slots
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AvailabilityUpsertRequest' }
+      responses:
+        '200':
+          description: OK
+
+  /vendors/bookings:
+    get:
+      tags: [Vendors]
+      summary: Vendor bookings list
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: Paged bookings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /vendors/bookings/{id}/status:
+    patch:
+      tags: [Vendors]
+      summary: Update booking status (vendor only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateBookingStatusRequest' }
+      responses:
+        '200':
+          description: OK
+
+  /admin/approval-requests:
+    get:
+      tags: [Admin]
+      summary: List approval requests
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [pending, approved, rejected] }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged requests
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /admin/approval-requests/{id}:
+    get:
+      tags: [Admin]
+      summary: Approval request details (includes integrity hash)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /admin/approval-requests/{id}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve request
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Approved
+
+  /admin/approval-requests/{id}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject request (reason required)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RejectReasonRequest' }
+      responses:
+        '200':
+          description: Rejected
+
+  /admin/branches:
+    get:
+      tags: [Admin]
+      summary: List branches
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged branches
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /admin/branches/{id}/status:
+    patch:
+      tags: [Admin]
+      summary: Update branch status (audit logged)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200':
+          description: Updated
+
+  /admin/vendors:
+    get:
+      tags: [Admin]
+      summary: List vendors
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged vendors
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /admin/vendors/{id}/status:
+    patch:
+      tags: [Admin]
+      summary: Update vendor status
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStatusRequest' }
+      responses:
+        '200':
+          description: Updated
+
+  /admin/analytics:
+    get:
+      tags: [Admin]
+      summary: Analytics overview (aggregated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /admin/reports/export:
+    post:
+      tags: [Admin]
+      summary: Export report (S3 presigned URL)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportExportRequest' }
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportExportResponse' }
+
+  /admin/audit-log:
+    get:
+      tags: [Admin]
+      summary: Audit log (paged)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: Paged audit log
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedResponse' }
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paged notifications
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/NotificationItem' }
+
+  /notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark notification as read
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+
+  /uploads/image:
+    post:
+      tags: [Uploads]
+      summary: Upload image (vendor/admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UploadImageResponse' }
+
+  /ai/recommend:
+    post:
+      tags: [AI]
+      summary: AI branch recommendation (optional)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query, location, time, durationMinutes]
+              properties:
+                query: { type: string }
+                location: { type: string }
+                time: { type: string, format: date-time }
+                durationMinutes: { type: integer }
+      responses:
+        '200':
+          description: Recommendation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '501':
+          description: Not implemented
