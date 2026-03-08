@@ -15,7 +15,7 @@ import {
   vendorLoginSchema,
   type VendorLoginFormValues,
 } from '@/features/vendor-auth/schemas'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES, ROUTES } from '@/lib/routes'
 
 export function VendorLoginPage() {
   const navigate = useNavigate()
@@ -144,7 +144,7 @@ export function VendorLoginPage() {
           <p className="text-sm text-app-muted">
             Looking for the management portal?{' '}
             <Link
-              to={ROUTES.LOGIN}
+              to={ADMIN_ROUTES.LOGIN}
               className="font-semibold text-app-accent transition-colors hover:text-orange-300"
             >
               Open Admin Sign In

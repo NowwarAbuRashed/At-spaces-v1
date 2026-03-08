@@ -10,7 +10,7 @@ import { LogoMark } from '@/components/shared/logo-mark'
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '@/components/ui'
 import { AuthField } from '@/features/auth/components/auth-field'
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/features/auth/schemas/forgot-password-schema'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate()
@@ -73,7 +73,7 @@ export function ForgotPasswordPage() {
               Send Reset Link
             </Button>
 
-            <Button variant="ghost" fullWidth onClick={() => navigate(ROUTES.LOGIN)} type="button">
+            <Button variant="ghost" fullWidth onClick={() => navigate(ADMIN_ROUTES.LOGIN)} type="button">
               <ArrowLeft className="h-4 w-4" />
               Back to Sign In
             </Button>

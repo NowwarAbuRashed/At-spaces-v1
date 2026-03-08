@@ -14,7 +14,7 @@ import {
   vendorForgotPasswordSchema,
   type VendorForgotPasswordFormValues,
 } from '@/features/vendor-auth/schemas'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES, ROUTES } from '@/lib/routes'
 
 export function VendorForgotPasswordPage() {
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null)
@@ -100,7 +100,7 @@ export function VendorForgotPasswordPage() {
           <p className="text-center text-sm text-app-muted">
             Need admin access?{' '}
             <Link
-              to={ROUTES.LOGIN}
+              to={ADMIN_ROUTES.LOGIN}
               className="font-semibold text-app-accent transition-colors hover:text-orange-300"
             >
               Open Admin Sign In

@@ -11,62 +11,62 @@ import {
   Store,
   Users,
 } from 'lucide-react'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 import type { NavItem } from '@/types/navigation'
 
 export const primaryNavItems: NavItem[] = [
   {
     label: 'Dashboard',
-    path: ROUTES.DASHBOARD,
+    path: ADMIN_ROUTES.DASHBOARD,
     icon: LayoutDashboard,
     requiresAuth: true,
     exact: true,
   },
   {
     label: 'Analytics',
-    path: ROUTES.ANALYTICS,
+    path: ADMIN_ROUTES.ANALYTICS,
     icon: ChartNoAxesCombined,
     requiresAuth: true,
   },
   {
     label: 'Branches',
-    path: ROUTES.BRANCHES,
+    path: ADMIN_ROUTES.BRANCHES,
     icon: Store,
     requiresAuth: true,
   },
   {
     label: 'Vendors',
-    path: ROUTES.VENDORS,
+    path: ADMIN_ROUTES.VENDORS,
     icon: Users,
     requiresAuth: true,
   },
   {
     label: 'Pricing',
-    path: ROUTES.PRICING,
+    path: ADMIN_ROUTES.PRICING,
     icon: DollarSign,
     requiresAuth: true,
   },
   {
     label: 'Approvals',
-    path: ROUTES.APPROVALS,
+    path: ADMIN_ROUTES.APPROVALS,
     icon: CheckSquare,
     requiresAuth: true,
   },
   {
     label: 'Applications',
-    path: ROUTES.APPLICATIONS,
+    path: ADMIN_ROUTES.APPLICATIONS,
     icon: FileSpreadsheet,
     requiresAuth: true,
   },
   {
     label: 'Settings',
-    path: ROUTES.SETTINGS,
+    path: ADMIN_ROUTES.SETTINGS,
     icon: Settings,
     requiresAuth: true,
   },
   {
     label: 'Notifications',
-    path: ROUTES.NOTIFICATIONS,
+    path: ADMIN_ROUTES.NOTIFICATIONS,
     icon: Bell,
     requiresAuth: true,
   },
@@ -86,4 +86,3 @@ export const appLogoItem: NavItem = {
   icon: ClipboardCheck,
   requiresAuth: true,
 }
-

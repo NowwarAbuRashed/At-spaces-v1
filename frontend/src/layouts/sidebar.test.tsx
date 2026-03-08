@@ -6,7 +6,7 @@ import { Sidebar } from '@/layouts/sidebar'
 describe('Sidebar', () => {
   it('highlights active navigation item', () => {
     render(
-      <MemoryRouter initialEntries={['/analytics']}>
+      <MemoryRouter initialEntries={['/admin/analytics']}>
         <Sidebar collapsed={false} />
       </MemoryRouter>,
     )
@@ -15,4 +15,3 @@ describe('Sidebar', () => {
     expect(activeLink).toHaveClass('bg-app-accent')
   })
 })
-

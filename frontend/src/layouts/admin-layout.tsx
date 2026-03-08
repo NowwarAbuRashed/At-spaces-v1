@@ -6,19 +6,19 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/store/auth-context'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { cn } from '@/lib/cn'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 import { Sidebar } from '@/layouts/sidebar'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/analytics': 'Analytics',
-  '/branches': 'Branches',
-  '/vendors': 'Vendors',
-  '/pricing': 'Pricing',
-  '/approvals': 'Approvals',
-  '/applications': 'Applications',
-  '/notifications': 'Notifications',
-  '/settings': 'Settings',
+  [ADMIN_ROUTES.DASHBOARD]: 'Dashboard',
+  [ADMIN_ROUTES.ANALYTICS]: 'Analytics',
+  [ADMIN_ROUTES.BRANCHES]: 'Branches',
+  [ADMIN_ROUTES.VENDORS]: 'Vendors',
+  [ADMIN_ROUTES.PRICING]: 'Pricing',
+  [ADMIN_ROUTES.APPROVALS]: 'Approvals',
+  [ADMIN_ROUTES.APPLICATIONS]: 'Applications',
+  [ADMIN_ROUTES.NOTIFICATIONS]: 'Notifications',
+  [ADMIN_ROUTES.SETTINGS]: 'Settings',
 }
 
 export function AdminLayout() {
@@ -39,7 +39,7 @@ export function AdminLayout() {
 
     toast.error('Session expired. Please sign in again.')
     consumeRefreshAuthFailure()
-    navigate(ROUTES.LOGIN, { replace: true })
+    navigate(ADMIN_ROUTES.LOGIN, { replace: true })
   }, [consumeRefreshAuthFailure, hasRefreshAuthFailure, navigate])
 
   return (

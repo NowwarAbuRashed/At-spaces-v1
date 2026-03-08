@@ -4,7 +4,7 @@ import { LogoMark } from '@/components/shared/logo-mark'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/store/auth-context'
 import { appLogoItem, primaryNavItems, secondaryNavItems } from '@/features/navigation/nav-items'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 import { cn } from '@/lib/cn'
 
 export interface SidebarProps {
@@ -28,7 +28,7 @@ export function Sidebar({
 
   const handleSignOut = async () => {
     await signOut()
-    navigate(ROUTES.LOGIN)
+    navigate(ADMIN_ROUTES.LOGIN)
     onNavigate?.()
   }
 
@@ -60,7 +60,7 @@ export function Sidebar({
           {primaryNavItems.map((item) => (
             <li key={item.label}>
               <NavLink
-                to={item.path ?? ROUTES.DASHBOARD}
+                to={item.path ?? ADMIN_ROUTES.DASHBOARD}
                 end={item.exact}
                 onClick={onNavigate}
                 className={({ isActive }) =>
@@ -93,7 +93,7 @@ export function Sidebar({
             className={cn(
               'flex h-11 w-full items-center rounded-xl px-3 text-sm font-semibold transition-all',
               collapsed ? 'justify-center' : 'justify-start gap-3',
-              location.pathname === ROUTES.LOGIN
+              location.pathname === ADMIN_ROUTES.LOGIN
                 ? 'bg-app-accent text-white shadow-glow'
                 : 'text-app-muted hover:bg-app-surface-alt hover:text-app-text',
             )}

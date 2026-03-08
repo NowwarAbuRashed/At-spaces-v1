@@ -30,7 +30,7 @@ import {
   topBranches as mockTopBranches,
 } from '@/features/dashboard/data/dashboard-mock-data'
 import { getInlineApiErrorMessage } from '@/lib/api-error'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 
 function toIsoDate(value: Date) {
   return value.toISOString().slice(0, 10)
@@ -146,7 +146,7 @@ export function DashboardPage() {
           </span>
         }
         actions={
-          <Button size="md" className="gap-2" onClick={() => navigate(ROUTES.ANALYTICS)}>
+          <Button size="md" className="gap-2" onClick={() => navigate(ADMIN_ROUTES.ANALYTICS)}>
             <TrendingUp className="h-4 w-4" />
             View Insights
           </Button>
@@ -213,7 +213,7 @@ export function DashboardPage() {
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 text-sm font-semibold text-app-accent transition-colors hover:text-orange-300"
-                  onClick={() => navigate(ROUTES.BRANCHES)}
+                  onClick={() => navigate(ADMIN_ROUTES.BRANCHES)}
                 >
                   View All
                   <ArrowRight className="h-4 w-4" />
