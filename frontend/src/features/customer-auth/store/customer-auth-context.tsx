@@ -6,6 +6,16 @@ import { isBackendUnavailableError, isUnauthorizedError } from '@/lib/api-error'
 import type { AuthUser } from '@/types/api'
 
 const CUSTOMER_SESSION_STORAGE_KEY = 'atspaces.customer.session.runtime'
+const ADMIN_LEGACY_PREFIXES = [
+  '/dashboard',
+  '/analytics',
+  '/vendors',
+  '/pricing',
+  '/approvals',
+  '/applications',
+  '/notifications',
+  '/settings',
+]
 
 interface PersistedCustomerAuthState {
   accessToken: string
@@ -78,6 +88,23 @@ function persistCustomerState(state: PersistedCustomerAuthState) {
   window.sessionStorage.setItem(CUSTOMER_SESSION_STORAGE_KEY, JSON.stringify(state))
 }
 
+function isCustomerRouteScope() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  const path = window.location.pathname
+  if (path.startsWith('/vendor') || path.startsWith('/admin')) {
+    return false
+  }
+
+  if (ADMIN_LEGACY_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+    return false
+  }
+
+  return true
+}
+
 export function CustomerAuthProvider({ children }: PropsWithChildren) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -105,6 +132,11 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
 
     if (import.meta.env.MODE === 'test') {
       setHasAttemptedRefresh(true)
+      return
+    }
+
+    if (!isCustomerRouteScope()) {
+      setIsBackendUnavailable(false)
       return
     }
 

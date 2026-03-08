@@ -35,28 +35,16 @@ const SETTINGS_TABS: Array<{ label: string; value: SettingsTabKey }> = [
   { label: 'Notifications', value: 'notifications' },
   { label: 'Activity Log', value: 'activity' },
 ]
-
-function updateToggleSetting(
-  settings: ToggleSetting[],
-  key: string,
-  nextValue: boolean,
-): ToggleSetting[] {
-  return settings.map((setting) =>
-    setting.key === key
-      ? {
-          ...setting,
-          enabled: nextValue,
-        }
-      : setting,
-  )
-}
+const SETTINGS_UNAVAILABLE_MESSAGE =
+  'Security and notification preference endpoints are not available in the current backend contract. Controls are read-only.'
+const PHONE_UPDATE_UNAVAILABLE_MESSAGE =
+  'Phone number updates are currently unavailable. Backend profile updates support full name and email only.'
 
 export function SettingsPage() {
   const { accessToken } = useAuth()
   const [activeTab, setActiveTab] = useState<SettingsTabKey>('profile')
-  const [securitySettings, setSecuritySettings] = useState<ToggleSetting[]>(securitySettingsDefaults)
-  const [notificationSettings, setNotificationSettings] =
-    useState<ToggleSetting[]>(notificationSettingsDefaults)
+  const [securitySettings] = useState<ToggleSetting[]>(securitySettingsDefaults)
+  const [notificationSettings] = useState<ToggleSetting[]>(notificationSettingsDefaults)
 
   const {
     register,
@@ -121,10 +109,15 @@ export function SettingsPage() {
     }
 
     try {
-      await updateProfileMutation.mutateAsync(values)
-      toast.success(`Profile updated for ${values.fullName}.`)
-    } catch {
-      toast.error('Failed to update profile.')
+      const updated = await updateProfileMutation.mutateAsync(values)
+      const mapped = mapMeToProfileSettings(updated)
+      reset({
+        ...mapped,
+        phone: mapped.phone || profileDefaults.phone,
+      })
+      toast.success(`Profile updated for ${mapped.fullName}.`)
+    } catch (error) {
+      toast.error(getInlineApiErrorMessage(error, 'Failed to update profile.'))
     }
   })
 
@@ -199,11 +192,13 @@ export function SettingsPage() {
               <Input
                 aria-invalid={Boolean(errors.phone)}
                 placeholder="Enter phone number"
+                disabled
                 {...register('phone')}
               />
               {errors.phone?.message ? (
                 <span className="text-xs text-app-danger">{errors.phone.message}</span>
               ) : null}
+              <span className="text-xs text-app-muted">{PHONE_UPDATE_UNAVAILABLE_MESSAGE}</span>
             </label>
 
             <Button
@@ -235,12 +230,11 @@ export function SettingsPage() {
             title={setting.title}
             description={setting.description}
             enabled={setting.enabled}
-            onToggle={(next) => {
-              setSecuritySettings((current) => updateToggleSetting(current, setting.key, next))
-              toast.success('Security setting updated.')
-            }}
+            onToggle={() => undefined}
+            disabled
           />
         ))}
+        <p className="text-xs font-semibold text-app-muted">{SETTINGS_UNAVAILABLE_MESSAGE}</p>
       </CardContent>
     </Card>
   )
@@ -260,12 +254,11 @@ export function SettingsPage() {
             title={setting.title}
             description={setting.description}
             enabled={setting.enabled}
-            onToggle={(next) => {
-              setNotificationSettings((current) => updateToggleSetting(current, setting.key, next))
-              toast.success('Notification preference updated.')
-            }}
+            onToggle={() => undefined}
+            disabled
           />
         ))}
+        <p className="text-xs font-semibold text-app-muted">{SETTINGS_UNAVAILABLE_MESSAGE}</p>
       </CardContent>
     </Card>
   )

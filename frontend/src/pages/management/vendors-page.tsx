@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { listAdminVendors } from '@/api/admin-api'
+import { listAdminVendors, updateAdminVendorStatus } from '@/api/admin-api'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
@@ -16,6 +16,7 @@ import { getInlineApiErrorMessage } from '@/lib/api-error'
 
 export function VendorsPage() {
   const { accessToken } = useAuth()
+  const queryClient = useQueryClient()
   const [searchValue, setSearchValue] = useState('')
   const [selectedVendor, setSelectedVendor] = useState<VendorRecord | null>(null)
 
@@ -23,6 +24,22 @@ export function VendorsPage() {
     queryKey: ['admin', 'vendors', accessToken],
     queryFn: () => listAdminVendors({ accessToken: accessToken!, limit: 100 }),
     enabled: Boolean(accessToken),
+  })
+
+  const vendorStatusMutation = useMutation({
+    mutationFn: (payload: { vendorId: number; status: 'active' | 'suspended' }) =>
+      updateAdminVendorStatus({
+        accessToken: accessToken!,
+        vendorId: payload.vendorId,
+        status: payload.status,
+      }),
+    onSuccess: () => {
+      toast.success('Vendor status updated.')
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'vendors', accessToken] })
+    },
+    onError: (error) => {
+      toast.error(getInlineApiErrorMessage(error, 'Failed to update vendor status.'))
+    },
   })
 
   const allVendors = useMemo(() => {
@@ -44,6 +61,27 @@ export function VendorsPage() {
       )
     })
   }, [allVendors, searchValue])
+
+  const handleToggleVendorStatus = (vendor: VendorRecord) => {
+    if (!accessToken) {
+      toast.info('Sign in as admin to update vendor status.')
+      return
+    }
+
+    const vendorId = Number(vendor.id.replace('VN-', ''))
+    if (Number.isNaN(vendorId)) {
+      toast.error('Invalid vendor identifier.')
+      return
+    }
+
+    const nextStatus: 'active' | 'suspended' =
+      vendor.status === 'suspended' ? 'active' : 'suspended'
+
+    vendorStatusMutation.mutate({
+      vendorId,
+      status: nextStatus,
+    })
+  }
 
   if (accessToken && vendorsQuery.isPending) {
     return <LoadingState label="Loading vendors..." />
@@ -86,7 +124,16 @@ export function VendorsPage() {
       {filteredVendors.length ? (
         <section className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
           {filteredVendors.map((vendor) => (
-            <VendorCard key={vendor.id} vendor={vendor} onViewProfile={setSelectedVendor} />
+            <VendorCard
+              key={vendor.id}
+              vendor={vendor}
+              onViewProfile={setSelectedVendor}
+              onToggleStatus={handleToggleVendorStatus}
+              isStatusUpdating={
+                vendorStatusMutation.isPending &&
+                vendorStatusMutation.variables?.vendorId === Number(vendor.id.replace('VN-', ''))
+              }
+            />
           ))}
         </section>
       ) : (

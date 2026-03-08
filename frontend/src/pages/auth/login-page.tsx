@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { adminLoginRequest, adminVerifyMfaRequest } from '@/api/auth-api'
 import { ApiError } from '@/api/client'
@@ -14,7 +14,7 @@ import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login
 import { mfaVerifySchema, type MfaVerifyValues } from '@/features/auth/schemas/mfa-verify-schema'
 import { useAuth } from '@/features/auth/store/auth-context'
 import { appEnv } from '@/lib/env'
-import { ROUTES } from '@/lib/routes'
+import { ADMIN_ROUTES } from '@/lib/routes'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -86,7 +86,7 @@ export function LoginPage() {
         rememberChoice,
       )
       toast.success(`Welcome back, ${response.user.fullName}.`)
-      navigate(ROUTES.DASHBOARD)
+      navigate(ADMIN_ROUTES.DASHBOARD)
     } catch (error) {
       const message = error instanceof ApiError ? error.message : 'MFA verification failed.'
       mfaForm.setError('totpCode', { type: 'manual', message })
@@ -129,12 +129,12 @@ export function LoginPage() {
                   label="Password"
                   error={loginForm.formState.errors.password?.message}
                   rightLabel={
-                    <Link
-                      to={ROUTES.FORGOT_PASSWORD}
+                    <a
+                      href="mailto:security@atspaces.com?subject=Admin%20Password%20Reset"
                       className="text-sm font-semibold text-app-accent transition-colors hover:text-orange-300"
                     >
-                      Forgot password?
-                    </Link>
+                      Request password reset
+                    </a>
                   }
                 >
                   <Input
@@ -226,4 +226,3 @@ export function LoginPage() {
     </div>
   )
 }
-

@@ -1,4 +1,4 @@
-import { Mail } from 'lucide-react'
+import { Loader2, Mail, Pause, Play } from 'lucide-react'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/cn'
@@ -7,6 +7,8 @@ import type { VendorRecord } from '@/features/management/types'
 export interface VendorCardProps {
   vendor: VendorRecord
   onViewProfile?: (vendor: VendorRecord) => void
+  onToggleStatus?: (vendor: VendorRecord) => void
+  isStatusUpdating?: boolean
 }
 
 function metricColor(value: number, inverse = false) {
@@ -21,7 +23,15 @@ function metricColor(value: number, inverse = false) {
   return 'text-app-danger'
 }
 
-export function VendorCard({ vendor, onViewProfile }: VendorCardProps) {
+export function VendorCard({
+  vendor,
+  onViewProfile,
+  onToggleStatus,
+  isStatusUpdating = false,
+}: VendorCardProps) {
+  const statusActionLabel = vendor.status === 'suspended' ? 'Activate' : 'Suspend'
+  const statusActionDisabled = isStatusUpdating
+
   return (
     <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -68,14 +78,36 @@ export function VendorCard({ vendor, onViewProfile }: VendorCardProps) {
         <p>Joined {vendor.joinedAt}</p>
       </div>
 
-      <button
-        type="button"
-        className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-app-border px-4 py-3 text-sm font-semibold text-app-text transition-colors hover:border-app-accent/50"
-        onClick={() => onViewProfile?.(vendor)}
-        aria-label={`View profile for ${vendor.name}`}
-      >
-        View Profile
-      </button>
+      <div className="mt-4 flex items-center gap-3 border-t border-app-border pt-4">
+        <button
+          type="button"
+          className="inline-flex flex-1 items-center justify-center rounded-xl border border-app-border px-4 py-3 text-sm font-semibold text-app-text transition-colors hover:border-app-accent/50"
+          onClick={() => onViewProfile?.(vendor)}
+          aria-label={`View profile for ${vendor.name}`}
+        >
+          View Profile
+        </button>
+        <button
+          type="button"
+          className={cn(
+            'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold',
+            vendor.status === 'suspended' ? 'text-app-success' : 'text-app-warning',
+            statusActionDisabled && 'cursor-not-allowed opacity-70',
+          )}
+          onClick={() => onToggleStatus?.(vendor)}
+          disabled={statusActionDisabled}
+          aria-label={`${statusActionLabel} ${vendor.name}`}
+        >
+          {isStatusUpdating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : vendor.status === 'suspended' ? (
+            <Play className="h-4 w-4" />
+          ) : (
+            <Pause className="h-4 w-4" />
+          )}
+          {statusActionLabel}
+        </button>
+      </div>
     </Card>
   )
 }

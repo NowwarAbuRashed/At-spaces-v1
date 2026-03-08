@@ -7,6 +7,16 @@ import type { AuthUser } from '@/types/api'
 
 const LOCAL_STORAGE_KEY = 'atspaces.admin.session'
 const SESSION_STORAGE_KEY = 'atspaces.admin.session.runtime'
+const ADMIN_LEGACY_PREFIXES = [
+  '/dashboard',
+  '/analytics',
+  '/vendors',
+  '/pricing',
+  '/approvals',
+  '/applications',
+  '/notifications',
+  '/settings',
+]
 
 interface PersistedAuthState {
   accessToken: string
@@ -107,6 +117,19 @@ function persistState(state: PersistedAuthState, remember: boolean) {
   }
 }
 
+function isAdminRouteScope() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  const path = window.location.pathname
+  if (path.startsWith('/admin')) {
+    return true
+  }
+
+  return ADMIN_LEGACY_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -132,6 +155,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     if (import.meta.env.MODE === 'test') {
+      return
+    }
+
+    if (!isAdminRouteScope()) {
+      setIsBackendUnavailable(false)
       return
     }
 

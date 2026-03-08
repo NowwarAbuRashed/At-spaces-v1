@@ -118,7 +118,6 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
 
     // Prevent vendor refresh traffic when the user is in the customer app.
     if (!isVendorRouteScope()) {
-      setHasAttemptedRefresh(true)
       setIsBackendUnavailable(false)
       return
     }
