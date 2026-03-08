@@ -1,18 +1,18 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { PropsWithChildren } from 'react'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { vendorLogoutRequest, vendorRefreshRequest } from '@/api/vendor-api'
+import { customerLogoutRequest, customerRefreshRequest } from '@/api/customer-api'
 import { isBackendUnavailableError, isUnauthorizedError } from '@/lib/api-error'
 import type { AuthUser } from '@/types/api'
 
-const VENDOR_SESSION_STORAGE_KEY = 'atspaces.vendor.session.runtime'
+const CUSTOMER_SESSION_STORAGE_KEY = 'atspaces.customer.session.runtime'
 
-interface PersistedVendorAuthState {
+interface PersistedCustomerAuthState {
   accessToken: string
   user: AuthUser | null
 }
 
-interface VendorAuthContextValue {
+interface CustomerAuthContextValue {
   accessToken: string | null
   user: AuthUser | null
   isAuthenticated: boolean
@@ -25,7 +25,7 @@ interface VendorAuthContextValue {
   signOut: () => Promise<void>
 }
 
-const defaultVendorAuthContext: VendorAuthContextValue = {
+const defaultCustomerAuthContext: CustomerAuthContextValue = {
   accessToken: null,
   user: null,
   isAuthenticated: false,
@@ -38,28 +38,20 @@ const defaultVendorAuthContext: VendorAuthContextValue = {
   signOut: async () => undefined,
 }
 
-const VendorAuthContext = createContext<VendorAuthContextValue>(defaultVendorAuthContext)
+const CustomerAuthContext = createContext<CustomerAuthContextValue>(defaultCustomerAuthContext)
 
-function isVendorRouteScope() {
-  if (typeof window === 'undefined') {
-    return false
-  }
-
-  return window.location.pathname.startsWith('/vendor')
-}
-
-function readPersistedVendorState(): PersistedVendorAuthState | null {
+function readPersistedCustomerState(): PersistedCustomerAuthState | null {
   if (typeof window === 'undefined') {
     return null
   }
 
-  const rawState = window.sessionStorage.getItem(VENDOR_SESSION_STORAGE_KEY)
+  const rawState = window.sessionStorage.getItem(CUSTOMER_SESSION_STORAGE_KEY)
   if (!rawState) {
     return null
   }
 
   try {
-    const parsed = JSON.parse(rawState) as PersistedVendorAuthState
+    const parsed = JSON.parse(rawState) as PersistedCustomerAuthState
     if (!parsed.accessToken) {
       return null
     }
@@ -70,23 +62,23 @@ function readPersistedVendorState(): PersistedVendorAuthState | null {
   }
 }
 
-function clearPersistedVendorState() {
+function clearPersistedCustomerState() {
   if (typeof window === 'undefined') {
     return
   }
 
-  window.sessionStorage.removeItem(VENDOR_SESSION_STORAGE_KEY)
+  window.sessionStorage.removeItem(CUSTOMER_SESSION_STORAGE_KEY)
 }
 
-function persistVendorState(state: PersistedVendorAuthState) {
+function persistCustomerState(state: PersistedCustomerAuthState) {
   if (typeof window === 'undefined') {
     return
   }
 
-  window.sessionStorage.setItem(VENDOR_SESSION_STORAGE_KEY, JSON.stringify(state))
+  window.sessionStorage.setItem(CUSTOMER_SESSION_STORAGE_KEY, JSON.stringify(state))
 }
 
-export function VendorAuthProvider({ children }: PropsWithChildren) {
+export function CustomerAuthProvider({ children }: PropsWithChildren) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isHydrating, setIsHydrating] = useState(true)
@@ -96,7 +88,7 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
   const [hasRefreshAuthFailure, setHasRefreshAuthFailure] = useState(false)
 
   useEffect(() => {
-    const persisted = readPersistedVendorState()
+    const persisted = readPersistedCustomerState()
     if (persisted) {
       setAccessToken(persisted.accessToken)
       setUser(persisted.user)
@@ -116,19 +108,13 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
       return
     }
 
-    // Prevent vendor refresh traffic when the user is in the customer app.
-    if (!isVendorRouteScope()) {
-      setHasAttemptedRefresh(true)
-      setIsBackendUnavailable(false)
-      return
-    }
-
     if (accessToken) {
       setHasAttemptedRefresh(true)
       setIsBackendUnavailable(false)
       return
     }
 
+    // Only attempt refresh when we actually restored a persisted customer session.
     if (!hadPersistedSession) {
       setHasAttemptedRefresh(true)
       setIsBackendUnavailable(false)
@@ -139,12 +125,12 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
 
     void (async () => {
       try {
-        const response = await vendorRefreshRequest()
+        const response = await customerRefreshRequest()
         setAccessToken(response.accessToken)
         setIsBackendUnavailable(false)
         setHasRefreshAuthFailure(false)
       } catch (error) {
-        clearPersistedVendorState()
+        clearPersistedCustomerState()
         setAccessToken(null)
         setUser(null)
 
@@ -159,7 +145,7 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
     })()
   }, [accessToken, hadPersistedSession, hasAttemptedRefresh, isHydrating])
 
-  const value = useMemo<VendorAuthContextValue>(
+  const value = useMemo<CustomerAuthContextValue>(
     () => ({
       accessToken,
       user,
@@ -168,7 +154,7 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
       isBackendUnavailable,
       hasRefreshAuthFailure,
       setAuthenticatedSession: (payload) => {
-        const nextState: PersistedVendorAuthState = {
+        const nextState: PersistedCustomerAuthState = {
           accessToken: payload.accessToken,
           user: payload.user,
         }
@@ -178,21 +164,21 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
         setIsBackendUnavailable(false)
         setHasAttemptedRefresh(true)
         setHasRefreshAuthFailure(false)
-        persistVendorState(nextState)
+        persistCustomerState(nextState)
       },
       clearSession: () => {
         setAccessToken(null)
         setUser(null)
         setHasAttemptedRefresh(true)
         setHasRefreshAuthFailure(false)
-        clearPersistedVendorState()
+        clearPersistedCustomerState()
       },
       consumeRefreshAuthFailure: () => {
         setHasRefreshAuthFailure(false)
       },
       signOut: async () => {
         try {
-          await vendorLogoutRequest()
+          await customerLogoutRequest()
         } catch {
           // Keep local sign-out resilient if backend logout fails.
         } finally {
@@ -200,16 +186,16 @@ export function VendorAuthProvider({ children }: PropsWithChildren) {
           setUser(null)
           setHasAttemptedRefresh(true)
           setHasRefreshAuthFailure(false)
-          clearPersistedVendorState()
+          clearPersistedCustomerState()
         }
       },
     }),
     [accessToken, hasRefreshAuthFailure, isBackendUnavailable, isHydrating, user],
   )
 
-  return <VendorAuthContext.Provider value={value}>{children}</VendorAuthContext.Provider>
+  return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>
 }
 
-export function useVendorAuth() {
-  return useContext(VendorAuthContext)
+export function useCustomerAuth() {
+  return useContext(CustomerAuthContext)
 }
