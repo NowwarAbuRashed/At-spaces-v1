@@ -7,6 +7,7 @@ interface RequestOptions {
   body?: unknown
   accessToken?: string | null
   signal?: AbortSignal
+  responseType?: 'json' | 'text'
 }
 
 export class ApiError extends Error {
@@ -78,6 +79,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!response.ok) {
     throw new ApiError(response.status, payload, `Request failed with status ${response.status}`)
+  }
+
+  if (options.responseType === 'text') {
+    return text as T
   }
 
   return (payload as T) ?? ({} as T)

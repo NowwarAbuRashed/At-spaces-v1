@@ -1,3 +1,27 @@
+export const CUSTOMER_ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  BRANCHES: '/branches',
+  BRANCH_DETAILS: '/branches/:id',
+  BOOKING_PREVIEW: '/booking-preview',
+  MY_BOOKINGS: '/my-bookings',
+  PROFILE: '/profile',
+  AI_RECOMMEND: '/ai-recommend',
+  BOOKING_DETAILS: '/booking/:id',
+} as const
+
+export type CustomerRoutePath = (typeof CUSTOMER_ROUTES)[keyof typeof CUSTOMER_ROUTES]
+
+export function getCustomerBranchDetailsRoute(branchId: string | number) {
+  return `/branches/${branchId}`
+}
+
+export function getCustomerBookingDetailsRoute(bookingId: string | number) {
+  return `/booking/${bookingId}`
+}
+
 export const ROUTES = {
   LOGIN: '/login',
   FORGOT_PASSWORD: '/forgot-password',
@@ -22,4 +46,4 @@ export const ROUTES = {
   SETTINGS: '/settings',
 } as const
 
-export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES]
+export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES] | CustomerRoutePath

@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react'
 import { useState } from 'react'
 import { AuthProvider } from '@/features/auth/store/auth-context'
 import { VendorAuthProvider } from '@/features/auth/store/vendor-auth-context'
+import { CustomerAuthProvider } from '@/features/customer-auth/store/customer-auth-context'
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -21,7 +22,9 @@ export function AppProviders({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <VendorAuthProvider>{children}</VendorAuthProvider>
+        <VendorAuthProvider>
+          <CustomerAuthProvider>{children}</CustomerAuthProvider>
+        </VendorAuthProvider>
       </AuthProvider>
     </QueryClientProvider>
   )
