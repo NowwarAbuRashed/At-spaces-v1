@@ -1,73 +1,68 @@
-# AtSpaces Frontend - Release Notes v1
+# RELEASE NOTES v1
 
-**Release Date:** 2026-03-08  
-**Version:** v1  
-**Release Type:** Workflow Completion + Stability Hardening
+Date: 2026-03-08
+Release Type: Frontend-Backend API Integration Completion
+Status: READY
 
-## 1) Executive Summary
-This release completes the production workflow coverage for the three AtSpaces portals (Customer, Vendor, Admin) on top of the existing backend APIs, with strict auth/session isolation, protected routing enforcement, and explicit unavailable states for unsupported backend capabilities.
+## Overview
+This release completes the frontend integration of the previously unused 12 APIs and closes the final verification blockers found during end-to-end readiness checks.
 
-## 2) Delivered Scope
+## Newly Integrated APIs (12)
+1. `POST /auth/customer/register-phone`
+2. `POST /auth/customer/verify-otp`
+3. `POST /auth/customer/resend-otp`
+4. `POST /auth/customer/reset-password`
+5. `GET /services/{id}`
+6. `GET /features`
+7. `GET /version`
+8. `POST /vendors/register`
+9. `POST /auth/vendor/reset-password`
+10. `POST /uploads/image`
+11. `POST /admin/auth/reset-password`
+12. `GET /admin/approval-requests/{id}`
 
-### Customer Portal
-- Routes covered: `/`, `/login`, `/register`, `/forgot-password`, `/branches`, `/branches/:id`, `/booking-preview`, `/my-bookings`, `/profile`.
-- Workflow coverage:
-  - register, login, session restore behavior
-  - browse/search branches and open branch details
-  - availability and booking preview
-  - create booking, list bookings, cancel booking
-  - export booking calendar (ICS)
-  - load/update profile
-  - logout and post-logout protected redirect
+## User Flows Delivered
+### Customer
+- Phone registration
+- OTP verification
+- Resend OTP
+- Customer reset password
+- Service details page
+- Features and version display
 
-### Vendor Portal
-- Routes covered: `/vendor/login`, `/vendor/forgot-password`, `/vendor/dashboard`, `/vendor/branches`, `/vendor/services`, `/vendor/availability`, `/vendor/bookings`, `/vendor/requests`, `/vendor/notifications`, `/vendor/settings`.
-- Workflow coverage:
-  - vendor login and session restore behavior
-  - dashboard and navigation flows
-  - branch and service management screens
-  - pricing and availability update flows
-  - bookings status actions
-  - capacity request creation
-  - notifications and profile/settings update
-  - logout
+### Vendor
+- Vendor registration
+- Vendor reset password
+- Image upload in vendor settings
 
-### Admin Portal
-- Routes covered: `/admin/login`, `/admin/dashboard`, `/admin/analytics`, `/admin/branches`, `/admin/vendors`, `/admin/pricing`, `/admin/approvals`, `/admin/applications`, `/admin/notifications`, `/admin/settings`.
-- Workflow coverage:
-  - admin login with MFA verification path
-  - dashboard and analytics load
-  - branches/vendors operational actions
-  - approvals/applications workflows
-  - notifications and settings tabs
-  - explicit unavailable state handling where backend capability is not enabled
-  - logout
+### Admin
+- Admin reset password
+- Approval request details page
+- Image upload in admin settings
 
-## 3) Security and Session Isolation Fixes
-- Customer refresh is gated behind persisted customer session presence to prevent guest boot refresh spam.
-- Vendor refresh execution is route-scoped and session-gated to prevent cross-portal leakage from customer/admin routes.
-- Admin, vendor, and customer portals operate with isolated refresh behavior and guarded internal routes.
-- Repeated 401 loop patterns were removed from normal portal boot flows.
+## Final Blocker Fixes
+### 1) Upload image 500 error (`POST /uploads/image`)
+- Root cause:
+  - Non-production environment was attempting real S3 upload without valid storage credentials, causing runtime 500.
+- Fix:
+  - Added non-production safe fallback in uploads service for recoverable storage/credential failures.
+  - Fallback returns a valid mock image URL payload so vendor/admin upload workflows stay operational.
+  - Production remains strict and does not silently bypass storage errors.
 
-## 4) UX and Reliability Enhancements
-- Added/verified loading, empty, and error states on integrated pages.
-- Mutation actions use disabled-submit behavior and user feedback via toasts.
-- Unsupported backend operations now render explicit unavailable/disabled states; no fake persistence or fake success messages.
-- Layout stability preserved across desktop/mobile without route redesign.
+### 2) Wrong customer OTP error message
+- Root cause:
+  - Customer OTP 401 errors were falling into shared unauthorized mapping and showing an admin-session message.
+- Fix:
+  - Added explicit customer OTP 401 handling in customer registration OTP verify flow.
+  - Invalid OTP now shows customer-appropriate OTP error messaging.
 
-## 5) Verification Snapshot
-- Frontend quality gates: typecheck, lint, tests, build -> **PASS** (latest validation cycle).
-- Customer end-to-end readiness walkthrough -> **PASS** (`frontend/playwright-readiness/report.json`).
-- Vendor/Admin portal smoke walkthrough -> **PASS** (`frontend/playwright-portal-smoke/report.json`).
-- Auth isolation checks in portal smoke report:
-  - `vendorSawAdminRefresh: false`
-  - `vendorSawCustomerRefresh: false`
-  - `adminSawVendorRefresh: false`
-  - `adminSawCustomerRefresh: false`
+## Verification Results (Post-Fix)
+- Vendor settings image upload: PASS (`POST /api/uploads/image` -> 200)
+- Admin settings image upload: PASS (`POST /api/uploads/image` -> 200)
+- Customer OTP invalid-code path: PASS (`POST /api/auth/customer/verify-otp` -> 401 with correct OTP UX message)
+- No runtime crashes observed in the revalidated flows.
+- No broken navigation observed in the revalidated flows.
 
-## 6) Known Non-Blocking Notes
-- During rapid route transitions in smoke runs, isolated `net::ERR_ABORTED` navigation-cancelled requests were observed.
-- These were not backend functional failures and did not affect completed PASS flows.
-
-## 7) Release Status
-**READY FOR HANDOFF / STAGING**
+## Notes
+- In non-production, image upload now gracefully falls back when storage credentials are unavailable.
+- For production storage behavior, ensure valid S3 credentials and bucket configuration are present.

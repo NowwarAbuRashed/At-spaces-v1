@@ -6,8 +6,11 @@ import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { AdminLayout } from '@/layouts/admin-layout'
 import { CustomerLayout } from '@/layouts/customer-layout'
 import { VendorLayout } from '@/layouts/vendor-layout'
+import { ForgotPasswordPage } from '@/pages/auth/forgot-password-page'
 import { LoginPage } from '@/pages/auth/login-page'
+import { ResetPasswordPage } from '@/pages/auth/reset-password-page'
 import { AnalyticsPage } from '@/pages/management/analytics-page'
+import { ApprovalRequestDetailsPage } from '@/pages/management/approval-request-details-page'
 import { ApplicationsPage } from '@/pages/management/applications-page'
 import { ApprovalsPage } from '@/pages/management/approvals-page'
 import { BranchesPage } from '@/pages/management/branches-page'
@@ -25,8 +28,12 @@ import { CustomerLoginPage } from '@/pages/customer/customer-login-page'
 import { CustomerMyBookingsPage } from '@/pages/customer/customer-my-bookings-page'
 import { CustomerProfilePage } from '@/pages/customer/customer-profile-page'
 import { CustomerRegisterPage } from '@/pages/customer/customer-register-page'
+import { CustomerResetPasswordPage } from '@/pages/customer/customer-reset-password-page'
+import { CustomerServiceDetailsPage } from '@/pages/customer/customer-service-details-page'
 import { VendorForgotPasswordPage } from '@/pages/vendor/auth/vendor-forgot-password-page'
 import { VendorLoginPage } from '@/pages/vendor/auth/vendor-login-page'
+import { VendorRegisterPage } from '@/pages/vendor/auth/vendor-register-page'
+import { VendorResetPasswordPage } from '@/pages/vendor/auth/vendor-reset-password-page'
 import { VendorAvailabilityPage } from '@/pages/vendor/vendor-availability-page'
 import { VendorBookingsPage } from '@/pages/vendor/vendor-bookings-page'
 import { VendorBranchesPage } from '@/pages/vendor/vendor-branches-page'
@@ -135,6 +142,8 @@ export function AppRoutes() {
         <Route path={CUSTOMER_ROUTES.LOGIN} element={<CustomerLoginPage />} />
         <Route path={CUSTOMER_ROUTES.REGISTER} element={<CustomerRegisterPage />} />
         <Route path={CUSTOMER_ROUTES.FORGOT_PASSWORD} element={<CustomerForgotPasswordPage />} />
+        <Route path={CUSTOMER_ROUTES.RESET_PASSWORD} element={<CustomerResetPasswordPage />} />
+        <Route path={CUSTOMER_ROUTES.SERVICE_DETAILS} element={<CustomerServiceDetailsPage />} />
         <Route path={CUSTOMER_ROUTES.BRANCHES} element={<CustomerBranchesPage />} />
         <Route path={CUSTOMER_ROUTES.BRANCH_DETAILS} element={<CustomerBranchDetailsPage />} />
         <Route path={CUSTOMER_ROUTES.BOOKING_PREVIEW} element={<CustomerBookingPreviewPage />} />
@@ -160,7 +169,9 @@ export function AppRoutes() {
         <Route index element={<VendorEntryRedirect />} />
         <Route element={<RequireVendorGuest />}>
           <Route path="login" element={<VendorLoginPage />} />
+          <Route path="register" element={<VendorRegisterPage />} />
           <Route path="forgot-password" element={<VendorForgotPasswordPage />} />
+          <Route path="reset-password" element={<VendorResetPasswordPage />} />
         </Route>
         <Route element={<RequireVendorAuth />}>
           <Route element={<VendorLayout />}>
@@ -181,6 +192,8 @@ export function AppRoutes() {
         <Route index element={<AdminEntryRedirect />} />
         <Route element={<RequireAdminGuest />}>
           <Route path="login" element={<LoginPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
         </Route>
         <Route element={<RequireAdminAuth />}>
           <Route element={<AdminLayout />}>
@@ -190,6 +203,7 @@ export function AppRoutes() {
             <Route path="vendors" element={<VendorsPage />} />
             <Route path="pricing" element={<PricingPage />} />
             <Route path="approvals" element={<ApprovalsPage />} />
+            <Route path="approvals/:id" element={<ApprovalRequestDetailsPage />} />
             <Route path="applications" element={<ApplicationsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />

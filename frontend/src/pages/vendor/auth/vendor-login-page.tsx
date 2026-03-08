@@ -132,6 +132,15 @@ export function VendorLoginPage() {
 
         <div className="space-y-3 text-center">
           <p className="text-sm text-app-muted">
+            New vendor partner?{' '}
+            <Link
+              to={ROUTES.VENDOR_REGISTER}
+              className="font-semibold text-app-accent transition-colors hover:text-orange-300"
+            >
+              Submit registration
+            </Link>
+          </p>
+          <p className="text-sm text-app-muted">
             Need access help? Contact Vendor Support at{' '}
             <a
               href="mailto:vendor-support@atspaces.com"

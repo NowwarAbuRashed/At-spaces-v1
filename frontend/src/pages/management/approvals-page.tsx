@@ -11,6 +11,7 @@ import { ApprovalRequestCard } from '@/features/management/components'
 import { approvalRequests } from '@/features/management/data/management-mock-data'
 import { mapAdminApprovalToRequest } from '@/features/management/lib/admin-mappers'
 import { getInlineApiErrorMessage } from '@/lib/api-error'
+import { getAdminApprovalDetailsRoute } from '@/lib/routes'
 import type { ApprovalRequest } from '@/features/management/types'
 
 type ApprovalStatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
@@ -146,6 +147,7 @@ export function ApprovalsPage() {
             <ApprovalRequestCard
               key={request.id}
               request={request}
+              detailsHref={getAdminApprovalDetailsRoute(requestIdFromDisplayId(request))}
               onApprove={handleApprove}
               onReject={handleReject}
               isApproving={

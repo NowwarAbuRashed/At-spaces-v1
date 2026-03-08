@@ -1,4 +1,5 @@
 import { Check, Clock3, Loader2, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +18,7 @@ export interface ApprovalRequestCardProps {
   onReject?: (request: ApprovalRequest) => void
   isApproving?: boolean
   isRejecting?: boolean
+  detailsHref?: string
 }
 
 export function ApprovalRequestCard({
@@ -25,6 +27,7 @@ export function ApprovalRequestCard({
   onReject,
   isApproving = false,
   isRejecting = false,
+  detailsHref,
 }: ApprovalRequestCardProps) {
   const isPending = request.status === 'pending'
   const isBusy = isApproving || isRejecting
@@ -51,6 +54,14 @@ export function ApprovalRequestCard({
 
       {isPending ? (
         <div className="flex flex-wrap items-center gap-2">
+          {detailsHref ? (
+            <Link
+              to={detailsHref}
+              className="inline-flex items-center gap-2 rounded-xl border border-app-border px-4 py-2.5 text-sm font-semibold text-app-text hover:border-app-accent/50"
+            >
+              Details
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -84,6 +95,13 @@ export function ApprovalRequestCard({
             Reject
           </button>
         </div>
+      ) : detailsHref ? (
+        <Link
+          to={detailsHref}
+          className="inline-flex items-center gap-2 rounded-xl border border-app-border px-4 py-2.5 text-sm font-semibold text-app-text hover:border-app-accent/50"
+        >
+          Details
+        </Link>
       ) : null}
     </Card>
   )

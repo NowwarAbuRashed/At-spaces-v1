@@ -1,6 +1,8 @@
 import { Clock3, UsersRound } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { formatCurrency } from '@/lib/format'
+import { getCustomerServiceDetailsRoute } from '@/lib/routes'
 import type { CustomerBranchService } from '@/types/customer'
 
 export interface CustomerServiceListProps {
@@ -39,6 +41,14 @@ export function CustomerServiceList({ services }: CustomerServiceListProps) {
                 <UsersRound className="h-3.5 w-3.5 text-app-accent" />
                 {service.capacityLabel}
               </p>
+              {typeof service.serviceId === 'number' ? (
+                <Link
+                  to={getCustomerServiceDetailsRoute(service.serviceId)}
+                  className="font-semibold text-app-accent transition-colors hover:text-orange-300"
+                >
+                  Service details
+                </Link>
+              ) : null}
             </div>
           </div>
         ))}

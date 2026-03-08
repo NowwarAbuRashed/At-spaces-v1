@@ -106,6 +106,15 @@ export function VendorForgotPasswordPage() {
               Open Admin Sign In
             </Link>
           </p>
+          <p className="text-center text-sm text-app-muted">
+            Already have a token?{' '}
+            <Link
+              to={ROUTES.VENDOR_RESET_PASSWORD}
+              className="font-semibold text-app-accent transition-colors hover:text-orange-300"
+            >
+              Reset password now
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </VendorAuthShell>

@@ -52,3 +52,13 @@ export async function adminForgotPasswordRequest(payload: { email: string }) {
   })
 }
 
+export async function adminResetPasswordRequest(payload: {
+  resetToken: string
+  newPassword: string
+  totpCode: string
+}) {
+  return apiRequest<{ message: string }>('/admin/auth/reset-password', {
+    method: 'POST',
+    body: payload,
+  })
+}

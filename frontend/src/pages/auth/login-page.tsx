@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { adminLoginRequest, adminVerifyMfaRequest } from '@/api/auth-api'
 import { ApiError } from '@/api/client'
@@ -129,12 +129,12 @@ export function LoginPage() {
                   label="Password"
                   error={loginForm.formState.errors.password?.message}
                   rightLabel={
-                    <a
-                      href="mailto:security@atspaces.com?subject=Admin%20Password%20Reset"
+                    <Link
+                      to={ADMIN_ROUTES.FORGOT_PASSWORD}
                       className="text-sm font-semibold text-app-accent transition-colors hover:text-orange-300"
                     >
                       Request password reset
-                    </a>
+                    </Link>
                   }
                 >
                   <Input

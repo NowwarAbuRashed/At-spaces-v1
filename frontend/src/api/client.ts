@@ -4,7 +4,7 @@ import type { ApiErrorPayload } from '@/types/api'
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   query?: Record<string, string | number | boolean | undefined | null>
-  body?: unknown
+  body?: unknown | FormData
   accessToken?: string | null
   signal?: AbortSignal
   responseType?: 'json' | 'text'
@@ -52,14 +52,22 @@ function maybeJson(text: string): unknown {
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response: Response
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
+  const headers: Record<string, string> = {
+    ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.accessToken ? { Authorization: `Bearer ${options.accessToken}` } : {}),
+  }
+
   try {
     response = await fetch(buildUrl(path, options.query), {
       method: options.method ?? 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.accessToken ? { Authorization: `Bearer ${options.accessToken}` } : {}),
-      },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      headers,
+      body:
+        options.body !== undefined
+          ? isFormDataBody
+            ? (options.body as FormData)
+            : JSON.stringify(options.body)
+          : undefined,
       credentials: 'include',
       signal: options.signal,
     })
