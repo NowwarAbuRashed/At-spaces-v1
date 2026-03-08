@@ -13,6 +13,24 @@ export interface VendorAuthMessageResponse {
   message: string
 }
 
+export interface VendorRegisterRequest {
+  fullName: string
+  email: string
+  password: string
+  branch: {
+    name: string
+    city: string
+    address: string
+    latitude?: number | null
+    longitude?: number | null
+  }
+}
+
+export interface VendorResetPasswordRequest {
+  resetToken: string
+  newPassword: string
+}
+
 export type VendorBranchDashboardStatus = 'calm' | 'moderate' | 'busy'
 
 export interface VendorDashboardApiResponse {

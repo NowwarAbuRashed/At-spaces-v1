@@ -1,4 +1,11 @@
-import type { AuthUser, MeApiResponse, PagedResponse } from '@/types/api'
+import type {
+  AuthUser,
+  FeatureApiItem,
+  MeApiResponse,
+  PagedResponse,
+  ServiceApiItem,
+  VersionApiResponse,
+} from '@/types/api'
 
 export interface CustomerAuthLoginResponse {
   accessToken: string
@@ -16,6 +23,27 @@ export interface CustomerAuthMessageResponse {
 export interface CustomerAuthRegisterEmailResponse {
   userId: number
   message: string
+}
+
+export interface CustomerAuthRegisterPhoneRequest {
+  fullName: string
+  phoneNumber: string
+}
+
+export interface CustomerAuthVerifyOtpRequest {
+  phoneNumber: string
+  otpCode: string
+  purpose: 'login' | 'signup' | 'verify'
+}
+
+export interface CustomerAuthResendOtpRequest {
+  phoneNumber: string
+  purpose: 'login' | 'signup' | 'verify'
+}
+
+export interface CustomerAuthResetPasswordRequest {
+  resetToken: string
+  newPassword: string
 }
 
 export interface CustomerPublicServiceApiItem {
@@ -125,3 +153,9 @@ export interface CustomerBookingDetailsApiResponse extends CustomerBookingListAp
 }
 
 export type CustomerProfileApiResponse = MeApiResponse
+
+export type CustomerServiceDetailsApiResponse = ServiceApiItem
+
+export type CustomerFeatureApiItem = FeatureApiItem
+
+export type CustomerApiVersionResponse = VersionApiResponse

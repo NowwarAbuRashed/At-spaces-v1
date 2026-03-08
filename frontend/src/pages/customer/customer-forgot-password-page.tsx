@@ -50,13 +50,22 @@ export function CustomerForgotPasswordPage() {
       formDescription="Provide the email linked to your customer account."
       badges={['Customer auth', 'Backend connected']}
       formFooter={
-        <p className="text-sm text-app-muted">
-          Remembered your password?{' '}
-          <Link to={CUSTOMER_ROUTES.LOGIN} className="font-semibold text-app-accent hover:text-orange-300">
-            Back to sign in
-          </Link>
-          .
-        </p>
+        <div className="space-y-2 text-sm text-app-muted">
+          <p>
+            Remembered your password?{' '}
+            <Link to={CUSTOMER_ROUTES.LOGIN} className="font-semibold text-app-accent hover:text-orange-300">
+              Back to sign in
+            </Link>
+            .
+          </p>
+          <p>
+            Already have a token?{' '}
+            <Link to={CUSTOMER_ROUTES.RESET_PASSWORD} className="font-semibold text-app-accent hover:text-orange-300">
+              Reset password now
+            </Link>
+            .
+          </p>
+        </div>
       }
     >
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>

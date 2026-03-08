@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { adminForgotPasswordRequest } from '@/api/auth-api'
 import { ApiError } from '@/api/client'
@@ -77,6 +77,14 @@ export function ForgotPasswordPage() {
               <ArrowLeft className="h-4 w-4" />
               Back to Sign In
             </Button>
+
+            <p className="text-center text-sm text-app-muted">
+              Already have a token?{' '}
+              <Link to={ADMIN_ROUTES.RESET_PASSWORD} className="font-semibold text-app-accent hover:text-orange-300">
+                Reset password now
+              </Link>
+              .
+            </p>
           </form>
         </CardContent>
       </Card>

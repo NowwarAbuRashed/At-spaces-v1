@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   cancelCustomerBookingRequest,
+  getBackendVersionRequest,
   customerBookingPreviewRequest,
   customerCheckAvailabilityRequest,
   customerCreateBookingRequest,
   customerRecommendRequest,
+  getCustomerServiceDetailsRequest,
   exportCustomerBookingCalendarRequest,
   getCustomerBookingDetailsRequest,
   getCustomerBranchDetailsRequest,
   getCustomerProfileRequest,
   listCustomerBranchesRequest,
+  listCustomerFeaturesRequest,
   listCustomerFacilitiesRequest,
   listCustomerMyBookingsRequest,
   listCustomerServicesRequest,
@@ -25,7 +28,10 @@ import type {
 const CUSTOMER_DEFAULT_LIMIT = 20
 
 export const customerQueryKeys = {
+  version: ['customer', 'backend-version'] as const,
   services: ['customer', 'services'] as const,
+  serviceDetails: (serviceId: number) => ['customer', 'service-details', serviceId] as const,
+  features: ['customer', 'features'] as const,
   facilities: ['customer', 'facilities'] as const,
   branches: (params: { city?: string; serviceId?: number; query?: string }) =>
     [
@@ -65,6 +71,31 @@ export function useCustomerServicesQuery() {
   return useQuery({
     queryKey: customerQueryKeys.services,
     queryFn: listCustomerServicesRequest,
+    retry: false,
+  })
+}
+
+export function useCustomerServiceDetailsQuery(serviceId: number | null) {
+  return useQuery({
+    queryKey: serviceId === null ? ['customer', 'service-details', 'none'] : customerQueryKeys.serviceDetails(serviceId),
+    queryFn: () => getCustomerServiceDetailsRequest(serviceId!),
+    enabled: typeof serviceId === 'number',
+    retry: false,
+  })
+}
+
+export function useCustomerFeaturesQuery() {
+  return useQuery({
+    queryKey: customerQueryKeys.features,
+    queryFn: listCustomerFeaturesRequest,
+    retry: false,
+  })
+}
+
+export function useBackendVersionQuery() {
+  return useQuery({
+    queryKey: customerQueryKeys.version,
+    queryFn: getBackendVersionRequest,
     retry: false,
   })
 }

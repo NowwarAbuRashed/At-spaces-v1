@@ -1,18 +1,25 @@
 import { apiRequest } from '@/api/client'
 import type {
+  CustomerApiVersionResponse,
   CustomerAuthLoginResponse,
   CustomerAuthMessageResponse,
+  CustomerAuthRegisterPhoneRequest,
   CustomerAuthRefreshResponse,
+  CustomerAuthResendOtpRequest,
+  CustomerAuthResetPasswordRequest,
   CustomerAuthRegisterEmailResponse,
+  CustomerAuthVerifyOtpRequest,
   CustomerAvailabilityCheckRequest,
   CustomerAvailabilityCheckResponse,
   CustomerBranchDetailsApiResponse,
   CustomerBookingDetailsApiResponse,
   CustomerBookingPreviewResponse,
+  CustomerFeatureApiItem,
   CustomerCreateBookingRequest,
   CustomerCreateBookingResponse,
   CustomerMyBookingsApiResponse,
   CustomerProfileApiResponse,
+  CustomerServiceDetailsApiResponse,
   CustomerPublicBranchesApiResponse,
   CustomerPublicFacilityApiItem,
   CustomerPublicServiceApiItem,
@@ -33,8 +40,29 @@ export async function customerRegisterEmailRequest(payload: {
   })
 }
 
+export async function customerRegisterPhoneRequest(payload: CustomerAuthRegisterPhoneRequest) {
+  return apiRequest<CustomerAuthMessageResponse>('/auth/customer/register-phone', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
 export async function customerLoginRequest(payload: { email: string; password: string }) {
   return apiRequest<CustomerAuthLoginResponse>('/auth/customer/login-email', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function customerVerifyOtpRequest(payload: CustomerAuthVerifyOtpRequest) {
+  return apiRequest<CustomerAuthLoginResponse>('/auth/customer/verify-otp', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function customerResendOtpRequest(payload: CustomerAuthResendOtpRequest) {
+  return apiRequest<CustomerAuthMessageResponse>('/auth/customer/resend-otp', {
     method: 'POST',
     body: payload,
   })
@@ -59,12 +87,31 @@ export async function customerForgotPasswordRequest(payload: { email: string }) 
   })
 }
 
+export async function customerResetPasswordRequest(payload: CustomerAuthResetPasswordRequest) {
+  return apiRequest<CustomerAuthMessageResponse>('/auth/customer/reset-password', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
 export async function listCustomerServicesRequest() {
   return apiRequest<CustomerPublicServiceApiItem[]>('/services')
 }
 
+export async function getCustomerServiceDetailsRequest(serviceId: number) {
+  return apiRequest<CustomerServiceDetailsApiResponse>(`/services/${serviceId}`)
+}
+
 export async function listCustomerFacilitiesRequest() {
   return apiRequest<CustomerPublicFacilityApiItem[]>('/facilities')
+}
+
+export async function listCustomerFeaturesRequest() {
+  return apiRequest<CustomerFeatureApiItem[]>('/features')
+}
+
+export async function getBackendVersionRequest() {
+  return apiRequest<CustomerApiVersionResponse>('/version')
 }
 
 export async function listCustomerBranchesRequest(options?: {

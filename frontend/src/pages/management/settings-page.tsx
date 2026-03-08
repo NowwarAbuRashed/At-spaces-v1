@@ -6,6 +6,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { getMe, updateMe } from '@/api/users-api'
 import { listAuditLog } from '@/api/admin-api'
+import { uploadImageRequest } from '@/api/uploads-api'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
@@ -43,6 +44,8 @@ const PHONE_UPDATE_UNAVAILABLE_MESSAGE =
 export function SettingsPage() {
   const { accessToken } = useAuth()
   const [activeTab, setActiveTab] = useState<SettingsTabKey>('profile')
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
   const [securitySettings] = useState<ToggleSetting[]>(securitySettingsDefaults)
   const [notificationSettings] = useState<ToggleSetting[]>(notificationSettingsDefaults)
 
@@ -76,6 +79,10 @@ export function SettingsPage() {
         fullName: values.fullName,
         email: values.email,
       }),
+  })
+
+  const uploadImageMutation = useMutation({
+    mutationFn: (file: File) => uploadImageRequest({ accessToken: accessToken!, file }),
   })
 
   useEffect(() => {
@@ -121,6 +128,26 @@ export function SettingsPage() {
     }
   })
 
+  const handleUploadImage = async () => {
+    if (!accessToken) {
+      toast.error('Sign in as admin to upload an image.')
+      return
+    }
+
+    if (!selectedImageFile) {
+      toast.error('Select an image first.')
+      return
+    }
+
+    try {
+      const response = await uploadImageMutation.mutateAsync(selectedImageFile)
+      setUploadedImageUrl(response.url)
+      toast.success('Image uploaded successfully.')
+    } catch (error) {
+      toast.error(getInlineApiErrorMessage(error, 'Failed to upload image.'))
+    }
+  }
+
   const profileSection = (
     <Card className="max-w-4xl">
       <CardHeader>
@@ -137,11 +164,28 @@ export function SettingsPage() {
               <p className="text-base text-app-muted">{profileEmail}</p>
             </div>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Change Photo
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input type="file" accept="image/*" onChange={(event) => setSelectedImageFile(event.target.files?.[0] ?? null)} />
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                void handleUploadImage()
+              }}
+              isLoading={uploadImageMutation.isPending}
+            >
+              <Upload className="h-4 w-4" />
+              Change Photo
+            </Button>
+          </div>
         </div>
+        {uploadedImageUrl ? (
+          <div className="rounded-xl border border-app-border bg-app-surface-alt/55 p-3">
+            <p className="mb-2 text-sm text-app-muted">Uploaded image preview</p>
+            <img src={uploadedImageUrl} alt="Uploaded admin profile" className="max-h-40 rounded-lg border border-app-border object-cover" />
+          </div>
+        ) : null}
 
         {accessToken && meQuery.isPending ? <LoadingState label="Loading profile..." className="py-6" /> : null}
 

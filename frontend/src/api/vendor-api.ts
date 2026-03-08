@@ -3,6 +3,8 @@ import type {
   VendorAuthLoginResponse,
   VendorAuthMessageResponse,
   VendorAuthRefreshResponse,
+  VendorRegisterRequest,
+  VendorResetPasswordRequest,
   VendorAvailabilityUpsertRequest,
   VendorAvailabilityUpsertResponse,
   VendorBookingsListApiResponse,
@@ -42,6 +44,20 @@ export async function vendorLogoutRequest() {
 
 export async function vendorForgotPasswordRequest(payload: { email: string }) {
   return apiRequest<VendorAuthMessageResponse>('/auth/vendor/forgot-password', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function vendorResetPasswordRequest(payload: VendorResetPasswordRequest) {
+  return apiRequest<VendorAuthMessageResponse>('/auth/vendor/reset-password', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function vendorRegisterRequest(payload: VendorRegisterRequest) {
+  return apiRequest<VendorAuthMessageResponse>('/vendors/register', {
     method: 'POST',
     body: payload,
   })

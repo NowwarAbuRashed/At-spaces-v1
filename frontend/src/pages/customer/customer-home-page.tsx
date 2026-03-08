@@ -1,6 +1,7 @@
 import { ArrowRight, Search, Sparkles, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { CustomerChecklistCard, CustomerPageShell } from '@/components/customer'
+import { LoadingState } from '@/components/shared/loading-state'
 import {
   Badge,
   Button,
@@ -11,6 +12,7 @@ import {
   CardTitle,
   Input,
 } from '@/components/ui'
+import { useBackendVersionQuery, useCustomerFeaturesQuery } from '@/features/customer/hooks/use-customer-queries'
 import {
   getBranchStartingPrice,
   mockCustomerBranches,
@@ -20,13 +22,16 @@ import { CUSTOMER_ROUTES, getCustomerBranchDetailsRoute } from '@/lib/routes'
 
 export function CustomerHomePage() {
   const featuredBranches = mockCustomerBranches.slice(0, 3)
+  const featuresQuery = useCustomerFeaturesQuery()
+  const versionQuery = useBackendVersionQuery()
+  const backendVersion = versionQuery.data?.version ?? 'unknown'
 
   return (
     <CustomerPageShell
       eyebrow="AtSpaces Customer Portal"
       title="Book your ideal space with confidence"
       description="Browse premium branches, compare services, and reserve a slot in just a few steps."
-      badges={['Phase 1', 'Design system ready', 'Mock data']}
+      badges={['Phase 1', 'Design system ready', `Backend ${backendVersion}`]}
       actions={
         <div className="flex flex-wrap gap-3">
           <Link to={CUSTOMER_ROUTES.BRANCHES}>
@@ -83,6 +88,33 @@ export function CustomerHomePage() {
         />
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Feature Catalog</CardTitle>
+          <CardDescription>Public feature list from backend (`GET /features`).</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {featuresQuery.isPending ? <LoadingState label="Loading feature catalog..." className="py-4" /> : null}
+          {featuresQuery.isError ? (
+            <p className="text-sm text-app-warning">
+              Feature catalog is unavailable at the moment.
+            </p>
+          ) : null}
+          {!featuresQuery.isPending && !featuresQuery.isError ? (
+            <div className="flex flex-wrap gap-2">
+              {(featuresQuery.data ?? []).map((feature) => (
+                <Badge key={feature.id} variant="neutral">
+                  {feature.name}
+                </Badge>
+              ))}
+              {(featuresQuery.data ?? []).length === 0 ? (
+                <span className="text-sm text-app-muted">No features returned by backend.</span>
+              ) : null}
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {featuredBranches.map((branch) => (
           <Card key={branch.id} className="h-full">
@@ -117,10 +149,15 @@ export function CustomerHomePage() {
 
       <Card className="border-app-accent/30 bg-app-accent/8">
         <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
-          <p className="inline-flex items-center gap-2 text-sm text-app-text sm:text-base">
-            <Sparkles className="h-4 w-4 text-app-accent" />
-            Optional AI recommendations can plug into this same shell later.
-          </p>
+          <div className="space-y-1">
+            <p className="inline-flex items-center gap-2 text-sm text-app-text sm:text-base">
+              <Sparkles className="h-4 w-4 text-app-accent" />
+              Optional AI recommendations can plug into this same shell later.
+            </p>
+            <p className="text-xs text-app-muted">
+              Backend version endpoint: {versionQuery.isError ? 'unavailable' : backendVersion}
+            </p>
+          </div>
           <Link to={CUSTOMER_ROUTES.LOGIN}>
             <Button type="button" variant="outline">
               Continue to Login

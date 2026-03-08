@@ -72,6 +72,31 @@ export interface AuditLogApiItem {
   timestamp: string
 }
 
+export interface ServiceApiItem {
+  id: number
+  name: string
+  unit: string
+}
+
+export interface FeatureApiItem {
+  id: number
+  name: string
+  icon: string | null
+}
+
+export interface VersionApiResponse {
+  version: string
+}
+
+export interface UploadImageApiResponse {
+  url: string
+  key: string
+}
+
+export interface AdminApprovalDetailsApiResponse {
+  [key: string]: unknown
+}
+
 export interface NotificationApiItem {
   id: number
   type: string

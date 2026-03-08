@@ -1,5 +1,6 @@
 import { apiRequest } from '@/api/client'
 import type {
+  AdminApprovalDetailsApiResponse,
   AdminAnalyticsApiResponse,
   AdminApprovalApiItem,
   AdminBranchApiItem,
@@ -80,6 +81,14 @@ export async function listApprovalRequests(
   })
 }
 
+export async function getApprovalRequestDetails(
+  options: AuthenticatedRequestOptions & { requestId: number },
+) {
+  return apiRequest<AdminApprovalDetailsApiResponse>(`/admin/approval-requests/${options.requestId}`, {
+    accessToken: options.accessToken,
+  })
+}
+
 export async function approveRequest(options: AuthenticatedRequestOptions & { requestId: number }) {
   return apiRequest<{ message: string }>(`/admin/approval-requests/${options.requestId}/approve`, {
     method: 'POST',
@@ -145,4 +154,3 @@ export async function listAuditLog(
     },
   })
 }
-

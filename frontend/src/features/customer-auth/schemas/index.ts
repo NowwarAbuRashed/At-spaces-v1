@@ -1,3 +1,6 @@
 export * from '@/features/customer-auth/schemas/customer-forgot-password-schema'
 export * from '@/features/customer-auth/schemas/customer-login-schema'
+export * from '@/features/customer-auth/schemas/customer-register-phone-schema'
 export * from '@/features/customer-auth/schemas/customer-register-schema'
+export * from '@/features/customer-auth/schemas/customer-reset-password-schema'
+export * from '@/features/customer-auth/schemas/customer-verify-otp-schema'
