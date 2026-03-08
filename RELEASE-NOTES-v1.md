@@ -1,79 +1,73 @@
-# Release Notes v1
+# AtSpaces Frontend - Release Notes v1
 
-Date: 2026-03-08
+**Release Date:** 2026-03-08  
+**Version:** v1  
+**Release Type:** Workflow Completion + Stability Hardening
 
-## Release Summary
+## 1) Executive Summary
+This release completes the production workflow coverage for the three AtSpaces portals (Customer, Vendor, Admin) on top of the existing backend APIs, with strict auth/session isolation, protected routing enforcement, and explicit unavailable states for unsupported backend capabilities.
 
-v1 finalizes backend-integrated customer frontend delivery and resolves the remaining auth/session noise blockers discovered in live smoke tests.
+## 2) Delivered Scope
 
-## Customer Frontend: Finalized Scope
+### Customer Portal
+- Routes covered: `/`, `/login`, `/register`, `/forgot-password`, `/branches`, `/branches/:id`, `/booking-preview`, `/my-bookings`, `/profile`.
+- Workflow coverage:
+  - register, login, session restore behavior
+  - browse/search branches and open branch details
+  - availability and booking preview
+  - create booking, list bookings, cancel booking
+  - export booking calendar (ICS)
+  - load/update profile
+  - logout and post-logout protected redirect
 
-- Public routes delivered:
-  - `/`
-  - `/login`
-  - `/register`
-  - `/branches`
-  - `/branches/:id`
-  - `/booking-preview`
-- Protected routes delivered:
-  - `/my-bookings`
-  - `/profile`
-- Live backend flows verified:
-  - customer register/login
-  - branches list/details
-  - booking preview
-  - booking create
-  - my bookings list
-  - booking cancel
-  - booking calendar export
-  - profile load/update
+### Vendor Portal
+- Routes covered: `/vendor/login`, `/vendor/forgot-password`, `/vendor/dashboard`, `/vendor/branches`, `/vendor/services`, `/vendor/availability`, `/vendor/bookings`, `/vendor/requests`, `/vendor/notifications`, `/vendor/settings`.
+- Workflow coverage:
+  - vendor login and session restore behavior
+  - dashboard and navigation flows
+  - branch and service management screens
+  - pricing and availability update flows
+  - bookings status actions
+  - capacity request creation
+  - notifications and profile/settings update
+  - logout
 
-## Auth/Session Blocker Fixes (Final)
+### Admin Portal
+- Routes covered: `/admin/login`, `/admin/dashboard`, `/admin/analytics`, `/admin/branches`, `/admin/vendors`, `/admin/pricing`, `/admin/approvals`, `/admin/applications`, `/admin/notifications`, `/admin/settings`.
+- Workflow coverage:
+  - admin login with MFA verification path
+  - dashboard and analytics load
+  - branches/vendors operational actions
+  - approvals/applications workflows
+  - notifications and settings tabs
+  - explicit unavailable state handling where backend capability is not enabled
+  - logout
 
-### 1) Customer refresh gating
+## 3) Security and Session Isolation Fixes
+- Customer refresh is gated behind persisted customer session presence to prevent guest boot refresh spam.
+- Vendor refresh execution is route-scoped and session-gated to prevent cross-portal leakage from customer/admin routes.
+- Admin, vendor, and customer portals operate with isolated refresh behavior and guarded internal routes.
+- Repeated 401 loop patterns were removed from normal portal boot flows.
 
-File:
-- `frontend/src/features/customer-auth/store/customer-auth-context.tsx`
+## 4) UX and Reliability Enhancements
+- Added/verified loading, empty, and error states on integrated pages.
+- Mutation actions use disabled-submit behavior and user feedback via toasts.
+- Unsupported backend operations now render explicit unavailable/disabled states; no fake persistence or fake success messages.
+- Layout stability preserved across desktop/mobile without route redesign.
 
-Change:
-- Refresh is now attempted only when a real persisted customer session was restored.
-- Guest/fresh app boot no longer triggers unnecessary customer refresh calls.
+## 5) Verification Snapshot
+- Frontend quality gates: typecheck, lint, tests, build -> **PASS** (latest validation cycle).
+- Customer end-to-end readiness walkthrough -> **PASS** (`frontend/playwright-readiness/report.json`).
+- Vendor/Admin portal smoke walkthrough -> **PASS** (`frontend/playwright-portal-smoke/report.json`).
+- Auth isolation checks in portal smoke report:
+  - `vendorSawAdminRefresh: false`
+  - `vendorSawCustomerRefresh: false`
+  - `adminSawVendorRefresh: false`
+  - `adminSawCustomerRefresh: false`
 
-Result:
-- Removed repeated customer refresh 401 noise on customer boot.
+## 6) Known Non-Blocking Notes
+- During rapid route transitions in smoke runs, isolated `net::ERR_ABORTED` navigation-cancelled requests were observed.
+- These were not backend functional failures and did not affect completed PASS flows.
 
-### 2) Vendor refresh isolation from customer app
-
-File:
-- `frontend/src/features/auth/store/vendor-auth-context.tsx`
-
-Change:
-- Added route-scope gating (`/vendor` only) before vendor refresh logic runs.
-- Added persisted-session gating to avoid refresh attempts without vendor session state.
-
-Result:
-- Customer app no longer triggers vendor refresh requests.
-
-### 3) Console/network cleanup
-
-Result in live run:
-- no failed backend API requests
-- no console errors
-- no runtime crashes
-- no request-failure noise from refresh loops
-
-## Validation
-
-Frontend checks:
-- `npm run typecheck` passed
-- `npm run lint` passed
-- `npm run test` passed (`36/36` files, `59/59` tests)
-- `npm run build` passed
-
-Live walkthrough/smoke artifacts:
-- `frontend/playwright-smoke/customer-auth-noise-live-report.json`
-- `frontend/playwright-smoke/quick-website-walkthrough-report.json`
-
-## Final Status
-
-READY
+## 7) Release Status
+**READY FOR HANDOFF / STAGING**
