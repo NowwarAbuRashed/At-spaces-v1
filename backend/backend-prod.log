@@ -1,0 +1,132 @@
+
+> atspaces-backend@1.0.0 start:prod
+> node dist/src/main.js
+
+{"timestamp":"2026-03-08T03:27:02.626Z","level":"info","message":"Starting Nest application...","metadata":{"context":"NestFactory"}}
+{"timestamp":"2026-03-08T03:27:02.627Z","level":"info","message":"PrismaModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.627Z","level":"info","message":"PassportModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.627Z","level":"info","message":"JwtModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.627Z","level":"info","message":"HealthModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.639Z","level":"info","message":"AiModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.639Z","level":"info","message":"ConfigHostModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.639Z","level":"info","message":"ConfigModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.639Z","level":"info","message":"AvailabilityModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.640Z","level":"info","message":"LoggingModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.640Z","level":"info","message":"RedisModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.640Z","level":"info","message":"ServicesModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"BranchesModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"EmailModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"AppModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"UsersModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"NotificationsModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"BookingsModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.641Z","level":"info","message":"AuthModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"UploadsModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"AdminModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"VendorsModule dependencies initialized","metadata":{"context":"InstanceLoader"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"HealthController {/api/health}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"Mapped {/api/health, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"VersionController {/api/version}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"Mapped {/api/version, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.642Z","level":"info","message":"CustomerAuthController {/api/auth/customer}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/register-email, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/register-phone, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/verify-otp, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/login-email, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/resend-otp, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/refresh, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.643Z","level":"info","message":"Mapped {/api/auth/customer/logout, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/customer/forgot-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/customer/reset-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"VendorAuthController {/api/auth/vendor}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/vendor/login, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/vendor/refresh, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/vendor/logout, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/vendor/forgot-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/auth/vendor/reset-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"VendorRegistrationController {/api/vendors}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"Mapped {/api/vendors/register, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.644Z","level":"info","message":"AdminAuthController {/api/admin/auth}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/login, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/mfa/verify, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/refresh, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/logout, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/forgot-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/admin/auth/reset-password, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"UsersController {/api/users}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/users/me, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"Mapped {/api/users/me, PUT} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.645Z","level":"info","message":"ServicesController {/api/services}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/services, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/services/:id, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"BranchesController {/api/branches}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/branches, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/branches/search, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/branches/:id, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"CatalogController {/api}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/facilities, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"Mapped {/api/features, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.646Z","level":"info","message":"AvailabilityController {/api/availability}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/availability/check, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"BookingsController {/api/bookings}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings/preview, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings/my, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings/:id, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings/:id/cancel, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/bookings/:id/calendar.ics, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"VendorsController {/api/vendors}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.647Z","level":"info","message":"Mapped {/api/vendors/dashboard, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/branches/me, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/branches/:id, PUT} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/vendor-services, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/vendor-services/:id, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/vendor-services/:id/price, PUT} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/vendor-services/:id/capacity-request, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/availability, PUT} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/bookings, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"Mapped {/api/vendors/bookings/:id/status, PATCH} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.648Z","level":"info","message":"AdminController {/api/admin}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/approval-requests, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/approval-requests/:id, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/approval-requests/:id/approve, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/approval-requests/:id/reject, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/branches, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/branches/:id/status, PATCH} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/vendors, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/vendors/:id/status, PATCH} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/analytics, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/reports/export, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/admin/audit-log, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"NotificationsController {/api/notifications}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/notifications, GET} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"Mapped {/api/notifications/:id/read, PATCH} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.649Z","level":"info","message":"UploadsController {/api/uploads}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.650Z","level":"info","message":"Mapped {/api/uploads/image, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.650Z","level":"info","message":"AiController {/api/ai}:","metadata":{"context":"RoutesResolver"}}
+{"timestamp":"2026-03-08T03:27:02.650Z","level":"info","message":"Mapped {/api/ai/recommend, POST} route","metadata":{"context":"RouterExplorer"}}
+{"timestamp":"2026-03-08T03:27:02.650Z","level":"info","message":"Nest application successfully started","metadata":{"context":"NestApplication"}}
+{"timestamp":"2026-03-08T03:27:02.651Z","level":"info","message":"server_started","metadata":{"nodeEnv":"development","host":"0.0.0.0","port":3000,"swaggerEnabled":true,"trustProxy":false,"corsOrigins":[]}}
+{"timestamp":"2026-03-08T03:27:11.734Z","level":"info","message":"http_request","requestId":"a3811b25-a2de-4cdf-9128-1ba41d71c096","metadata":{"method":"GET","path":"/api/health","statusCode":200,"durationMs":1,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.7705","requestId":"a3811b25-a2de-4cdf-9128-1ba41d71c096"}}
+{"timestamp":"2026-03-08T03:27:27.335Z","level":"info","message":"http_request","requestId":"19210b27-5aeb-4bf6-930d-996220d2bd09","metadata":{"method":"POST","path":"/api/admin/auth/login","statusCode":200,"durationMs":448,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"19210b27-5aeb-4bf6-930d-996220d2bd09"}}
+{"timestamp":"2026-03-08T03:27:40.481Z","level":"info","message":"http_request","requestId":"699d5f8d-f0a3-4ea6-9281-097b45c195b0","metadata":{"method":"POST","path":"/api/admin/auth/mfa/verify","statusCode":200,"durationMs":1347,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"699d5f8d-f0a3-4ea6-9281-097b45c195b0"}}
+{"timestamp":"2026-03-08T03:27:40.534Z","level":"info","message":"http_request","requestId":"05db3803-0331-4be6-8f3c-f771abbf1ea5","metadata":{"method":"GET","path":"/api/admin/analytics?from=2026-02-07&to=2026-03-08","statusCode":200,"durationMs":16,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"05db3803-0331-4be6-8f3c-f771abbf1ea5"}}
+{"timestamp":"2026-03-08T03:27:40.547Z","level":"info","message":"http_request","requestId":"62423866-729d-4a0c-b08e-a1c905bb4852","metadata":{"method":"GET","path":"/api/admin/branches?page=1&limit=100","statusCode":200,"durationMs":9,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"62423866-729d-4a0c-b08e-a1c905bb4852"}}
+{"timestamp":"2026-03-08T03:27:40.558Z","level":"info","message":"http_request","requestId":"39c76e52-aa69-4044-a220-8ea1ef1d02dd","metadata":{"method":"GET","path":"/api/admin/approval-requests?page=1&limit=100","statusCode":200,"durationMs":9,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"39c76e52-aa69-4044-a220-8ea1ef1d02dd"}}
+{"timestamp":"2026-03-08T03:27:40.565Z","level":"info","message":"http_request","requestId":"91a20295-a01b-4e46-9eed-d694a98805b4","metadata":{"method":"GET","path":"/api/admin/audit-log?page=1&limit=10","statusCode":200,"durationMs":4,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"91a20295-a01b-4e46-9eed-d694a98805b4"}}
+{"timestamp":"2026-03-08T03:27:44.954Z","level":"info","message":"http_request","requestId":"1849623a-5a31-4d3e-898d-7b08db97d500","metadata":{"method":"GET","path":"/api/admin/analytics?from=2026-02-07&to=2026-03-08","statusCode":200,"durationMs":9,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"1849623a-5a31-4d3e-898d-7b08db97d500"}}
+{"timestamp":"2026-03-08T03:27:50.072Z","level":"info","message":"http_request","requestId":"8d70bbc4-093e-4c84-bff6-1a1bdd80bf30","metadata":{"method":"POST","path":"/api/admin/reports/export","statusCode":200,"durationMs":144,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"8d70bbc4-093e-4c84-bff6-1a1bdd80bf30"}}
+{"timestamp":"2026-03-08T03:27:54.736Z","level":"info","message":"http_request","requestId":"b50716d0-e949-41ce-8f31-c9a6f1b7db8e","metadata":{"method":"GET","path":"/api/admin/branches?page=1&limit=100","statusCode":200,"durationMs":6,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"b50716d0-e949-41ce-8f31-c9a6f1b7db8e"}}
+{"timestamp":"2026-03-08T03:27:59.271Z","level":"info","message":"http_request","requestId":"143890e1-2783-4baa-b898-0fd3c9c21e0d","metadata":{"method":"PATCH","path":"/api/admin/branches/365/status","statusCode":200,"durationMs":123,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"143890e1-2783-4baa-b898-0fd3c9c21e0d"}}
+{"timestamp":"2026-03-08T03:27:59.282Z","level":"info","message":"http_request","requestId":"be36c06c-3f94-4ea7-a710-dd595b575b51","metadata":{"method":"GET","path":"/api/admin/branches?page=1&limit=100","statusCode":200,"durationMs":6,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"be36c06c-3f94-4ea7-a710-dd595b575b51"}}
+{"timestamp":"2026-03-08T03:28:03.835Z","level":"info","message":"http_request","requestId":"267e6b10-e9bb-45be-83d3-c6a151c04328","metadata":{"method":"PATCH","path":"/api/admin/branches/365/status","statusCode":200,"durationMs":107,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"267e6b10-e9bb-45be-83d3-c6a151c04328"}}
+{"timestamp":"2026-03-08T03:28:03.850Z","level":"info","message":"http_request","requestId":"a13343ba-d581-47de-981d-bf8b39aecaf8","metadata":{"method":"GET","path":"/api/admin/branches?page=1&limit=100","statusCode":200,"durationMs":7,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"a13343ba-d581-47de-981d-bf8b39aecaf8"}}
+{"timestamp":"2026-03-08T03:28:09.923Z","level":"info","message":"http_request","requestId":"763a01c1-e3ff-49ec-bba3-b646a5f1f0b7","metadata":{"method":"GET","path":"/api/admin/vendors?page=1&limit=100","statusCode":200,"durationMs":5,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"763a01c1-e3ff-49ec-bba3-b646a5f1f0b7"}}
+{"timestamp":"2026-03-08T03:28:26.622Z","level":"info","message":"http_request","requestId":"c0f27435-6a0c-4051-89b6-c31184a87600","metadata":{"method":"GET","path":"/api/admin/approval-requests?page=1&limit=100","statusCode":200,"durationMs":3,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"c0f27435-6a0c-4051-89b6-c31184a87600"}}
+{"timestamp":"2026-03-08T03:28:36.264Z","level":"info","message":"http_request","requestId":"76bcbcc2-5ebf-40d5-9bf7-e759de34174c","metadata":{"method":"GET","path":"/api/admin/approval-requests?page=1&limit=100","statusCode":200,"durationMs":4,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"76bcbcc2-5ebf-40d5-9bf7-e759de34174c"}}
+{"timestamp":"2026-03-08T03:28:47.498Z","level":"info","message":"http_request","requestId":"6b41a2fe-1fb0-40af-8041-c17daff82994","metadata":{"method":"GET","path":"/api/notifications?page=1&limit=100","statusCode":200,"durationMs":6,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"6b41a2fe-1fb0-40af-8041-c17daff82994"}}
+{"timestamp":"2026-03-08T03:29:00.370Z","level":"info","message":"http_request","requestId":"c653cf4b-0ac9-44ad-a15e-0b5bf072e7b2","metadata":{"method":"GET","path":"/api/users/me","statusCode":200,"durationMs":2,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"c653cf4b-0ac9-44ad-a15e-0b5bf072e7b2"}}
+{"timestamp":"2026-03-08T03:29:00.376Z","level":"info","message":"http_request","requestId":"802a348e-7f90-4a69-b99e-c28c2c5b839e","metadata":{"method":"GET","path":"/api/admin/audit-log?page=1&limit=30","statusCode":200,"durationMs":4,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"802a348e-7f90-4a69-b99e-c28c2c5b839e"}}
+{"timestamp":"2026-03-08T03:29:20.463Z","level":"info","message":"http_request","requestId":"f80c5f5d-b9e2-4325-9775-d0fba42021b5","metadata":{"method":"POST","path":"/api/admin/auth/logout","statusCode":200,"durationMs":0,"ipAddress":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36","requestId":"f80c5f5d-b9e2-4325-9775-d0fba42021b5"}}
+{"timestamp":"2026-03-08T05:20:32.781Z","level":"error","message":"Error happened during shutdown","metadata":{"context":"NestApplicationContext","trace":"Error: kill ENOSYS\n    at process.kill (node:internal/process/per_thread:277:13)\n    at process.cleanup (d:\\test 2\\backend\\node_modules\\@nestjs\\core\\nest-application-context.js:203:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"}}
+^C

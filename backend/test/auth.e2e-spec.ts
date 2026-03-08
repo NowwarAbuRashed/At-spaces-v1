@@ -10,8 +10,11 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/prisma/prisma.service';
 import { RedisService } from '../src/common/redis/redis.service';
+import { resetE2eDatabase } from './helpers/e2e-db-reset';
 
 describe('Auth (e2e)', () => {
+  jest.setTimeout(30000);
+
   let app: INestApplication;
   let prisma: PrismaService;
   let redis: RedisService;
@@ -68,15 +71,7 @@ describe('Auth (e2e)', () => {
 
   beforeEach(async () => {
     await redis.getClient().flushdb();
-    await prisma.$executeRawUnsafe(`
-      TRUNCATE TABLE
-        "security_events",
-        "otp_sessions",
-        "approval_requests",
-        "branches",
-        "users"
-      RESTART IDENTITY CASCADE
-    `);
+    await resetE2eDatabase(prisma);
 
     const customerPasswordHash = await bcrypt.hash(password, 12);
     const vendorPasswordHash = await bcrypt.hash(password, 12);

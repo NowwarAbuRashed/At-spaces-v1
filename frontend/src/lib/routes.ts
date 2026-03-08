@@ -1,0 +1,25 @@
+export const ROUTES = {
+  LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
+  VENDOR_LOGIN: '/vendor/login',
+  VENDOR_FORGOT_PASSWORD: '/vendor/forgot-password',
+  VENDOR_DASHBOARD: '/vendor/dashboard',
+  VENDOR_BRANCHES: '/vendor/branches',
+  VENDOR_SERVICES: '/vendor/services',
+  VENDOR_AVAILABILITY: '/vendor/availability',
+  VENDOR_BOOKINGS: '/vendor/bookings',
+  VENDOR_REQUESTS: '/vendor/requests',
+  VENDOR_NOTIFICATIONS: '/vendor/notifications',
+  VENDOR_SETTINGS: '/vendor/settings',
+  DASHBOARD: '/dashboard',
+  ANALYTICS: '/analytics',
+  BRANCHES: '/branches',
+  VENDORS: '/vendors',
+  PRICING: '/pricing',
+  APPROVALS: '/approvals',
+  APPLICATIONS: '/applications',
+  NOTIFICATIONS: '/notifications',
+  SETTINGS: '/settings',
+} as const
+
+export type AppRoutePath = (typeof ROUTES)[keyof typeof ROUTES]

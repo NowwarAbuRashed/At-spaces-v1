@@ -597,43 +597,89 @@ export class AdminService {
     const reportPayload = await this.buildReportPayload(dto);
     const key = this.buildReportStorageKey(dto.reportType, dto.format);
     const expiresIn = this.resolvePresignedExpirySeconds();
-    const url = await this.storeAndSignReport(key, dto.format, reportPayload, expiresIn);
+    try {
+      const url = await this.storeAndSignReport(key, dto.format, reportPayload, expiresIn);
 
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: adminId,
-        actorRole: 'admin',
-        action: 'report_exported',
-        targetType: 'report',
-        oldValue: Prisma.JsonNull,
-        newValue: {
+      await this.prisma.auditLog.create({
+        data: {
+          actorId: adminId,
+          actorRole: 'admin',
+          action: 'report_exported',
+          targetType: 'report',
+          oldValue: Prisma.JsonNull,
+          newValue: {
+            reportType: dto.reportType,
+            format: dto.format,
+            filters: dto.filters,
+            storageKey: key,
+            expiresIn,
+          } as Prisma.InputJsonValue,
+          ipAddress: requestMeta.ipAddress,
+          userAgent: requestMeta.userAgent,
+        },
+      });
+
+      await this.securityEventsService.log({
+        eventType: SecurityEventType.report_exported,
+        outcome: SecurityEventOutcome.success,
+        userId: adminId,
+        requestMeta,
+        metadata: {
           reportType: dto.reportType,
           format: dto.format,
-          filters: dto.filters,
           storageKey: key,
-          expiresIn,
-        } as Prisma.InputJsonValue,
-        ipAddress: requestMeta.ipAddress,
-        userAgent: requestMeta.userAgent,
-      },
-    });
+        },
+      });
 
-    await this.securityEventsService.log({
-      eventType: SecurityEventType.report_exported,
-      outcome: SecurityEventOutcome.success,
-      userId: adminId,
-      requestMeta,
-      metadata: {
-        reportType: dto.reportType,
-        format: dto.format,
-        storageKey: key,
-      },
-    });
+      return {
+        status: 'ready' as const,
+        url,
+        expiresIn,
+        message: null,
+      };
+    } catch (error) {
+      if (this.allowUnavailableExportResponse(error)) {
+        await this.prisma.auditLog.create({
+          data: {
+            actorId: adminId,
+            actorRole: 'admin',
+            action: 'report_export_unavailable',
+            targetType: 'report',
+            oldValue: Prisma.JsonNull,
+            newValue: {
+              reportType: dto.reportType,
+              format: dto.format,
+              filters: dto.filters,
+              storageKey: key,
+            } as Prisma.InputJsonValue,
+            ipAddress: requestMeta.ipAddress,
+            userAgent: requestMeta.userAgent,
+          },
+        });
 
-    return {
-      url,
-      expiresIn,
-    };
+        await this.securityEventsService.log({
+          eventType: SecurityEventType.report_exported,
+          outcome: SecurityEventOutcome.failure,
+          userId: adminId,
+          requestMeta,
+          metadata: {
+            reportType: dto.reportType,
+            format: dto.format,
+            storageKey: key,
+            reason: 'storage_unavailable',
+          },
+        });
+
+        return {
+          status: 'unavailable' as const,
+          url: null,
+          expiresIn: null,
+          message: 'Report export is unavailable in this environment.',
+        };
+      }
+
+      throw error;
+    }
   }
 
   async listAuditLogs(query: AuditLogQueryDto) {
@@ -1140,6 +1186,34 @@ export class AdminService {
     );
 
     return signedUrl;
+  }
+
+  private allowUnavailableExportResponse(error: unknown): boolean {
+    if (this.configService.get<string>('NODE_ENV') === 'production') {
+      return false;
+    }
+
+    if (error instanceof ServiceUnavailableException) {
+      return true;
+    }
+
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { name?: unknown; message?: unknown };
+    const name = typeof candidate.name === 'string' ? candidate.name : '';
+    const message = typeof candidate.message === 'string' ? candidate.message.toLowerCase() : '';
+
+    if (name === 'CredentialsProviderError') {
+      return true;
+    }
+
+    return (
+      message.includes('could not load credentials') ||
+      message.includes('credentialsprovidererror') ||
+      message.includes('report export storage is not configured')
+    );
   }
 
   private resolveContentType(format: ReportFormat): string {

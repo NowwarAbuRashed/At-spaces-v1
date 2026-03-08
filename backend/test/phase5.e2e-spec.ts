@@ -22,8 +22,11 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/prisma/prisma.service';
 import { RedisService } from '../src/common/redis/redis.service';
+import { resetE2eDatabase } from './helpers/e2e-db-reset';
 
 describe('Phase 5 (e2e)', () => {
+  jest.setTimeout(30000);
+
   let app: INestApplication;
   let prisma: PrismaService;
   let redis: RedisService;
@@ -158,30 +161,7 @@ describe('Phase 5 (e2e)', () => {
 
   beforeEach(async () => {
     await redis.getClient().flushdb();
-    await prisma.$executeRawUnsafe(`
-      TRUNCATE TABLE
-        "notifications",
-        "audit_log",
-        "security_events",
-        "messages",
-        "conversations",
-        "service_features",
-        "features",
-        "branch_facilities",
-        "facilities",
-        "payments",
-        "bookings",
-        "availability",
-        "vendor_service_images",
-        "vendor_services",
-        "service_images",
-        "services",
-        "approval_requests",
-        "otp_sessions",
-        "branches",
-        "users"
-      RESTART IDENTITY CASCADE
-    `);
+    await resetE2eDatabase(prisma);
 
     const passwordHash = await bcrypt.hash(password, 12);
 
@@ -559,6 +539,7 @@ describe('Phase 5 (e2e)', () => {
       })
       .expect(200);
 
+    expect(response.body.status).toBe('ready');
     expect(response.body.url).toContain('mock-s3.local');
     expect(response.body.expiresIn).toBeLessThanOrEqual(300);
 

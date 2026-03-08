@@ -1,0 +1,96 @@
+{
+  "baseUrl": "http://127.0.0.1:4173",
+  "timestamp": "2026-03-08T02:47:06.222Z",
+  "desktop": {
+    "visited": [
+      {
+        "page": "desktop-dashboard",
+        "url": "http://127.0.0.1:4173/dashboard",
+        "heading": "Good evening, Admin"
+      },
+      {
+        "page": "desktop-analytics",
+        "url": "http://127.0.0.1:4173/analytics",
+        "heading": "Network Analytics"
+      },
+      {
+        "page": "desktop-branches",
+        "url": "http://127.0.0.1:4173/branches",
+        "heading": "No heading (/branches)"
+      },
+      {
+        "page": "desktop-vendors",
+        "url": "http://127.0.0.1:4173/vendors",
+        "heading": "No heading (/vendors)"
+      },
+      {
+        "page": "desktop-pricing",
+        "url": "http://127.0.0.1:4173/pricing",
+        "heading": "Pricing & Policies"
+      },
+      {
+        "page": "desktop-approvals",
+        "url": "http://127.0.0.1:4173/approvals",
+        "heading": "No heading (/approvals)"
+      },
+      {
+        "page": "desktop-applications",
+        "url": "http://127.0.0.1:4173/applications",
+        "heading": "No heading (/applications)"
+      },
+      {
+        "page": "desktop-settings",
+        "url": "http://127.0.0.1:4173/settings",
+        "heading": "Settings"
+      },
+      {
+        "page": "desktop-notifications",
+        "url": "http://127.0.0.1:4173/notifications",
+        "heading": "No heading (/notifications)"
+      },
+      {
+        "page": "desktop-login",
+        "url": "http://127.0.0.1:4173/login",
+        "heading": "Command your networkwith confidence."
+      },
+      {
+        "page": "desktop-forgot-password",
+        "url": "http://127.0.0.1:4173/forgot-password",
+        "heading": "Reset Password"
+      }
+    ],
+    "errors": [
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "optional_action_failed: TimeoutError: locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab').nth(1)\u001b[22m\n\u001b[2m    - locator resolved to <button role=\"tab\" type=\"button\" aria-selected=\"false\" class=\"inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/60 text-app-muted hover:bg-app-surface hover:text-app-text\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n"
+    ],
+    "pageErrors": [],
+    "requestFailures": [
+      "GET http://localhost:3000/api/admin/analytics?from=2026-02-07&to=2026-03-08 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/admin/branches?page=1&limit=100 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/admin/approval-requests?page=1&limit=100 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/admin/audit-log?page=1&limit=10 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/admin/vendors?page=1&limit=100 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/users/me :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/admin/audit-log?page=1&limit=30 :: net::ERR_CONNECTION_REFUSED",
+      "GET http://localhost:3000/api/notifications?page=1&limit=100 :: net::ERR_CONNECTION_REFUSED",
+      "POST http://localhost:3000/api/admin/auth/logout :: net::ERR_CONNECTION_REFUSED"
+    ]
+  },
+  "mobile": {
+    "visited": [
+      {
+        "page": "mobile-dashboard",
+        "url": "http://127.0.0.1:4173/dashboard",
+        "heading": "Good evening, Admin"
+      },
+      {
+        "page": "mobile-analytics",
+        "url": "http://127.0.0.1:4173/analytics",
+        "heading": "Network Analytics"
+      }
+    ],
+    "errors": [],
+    "pageErrors": [],
+    "requestFailures": []
+  }
+}

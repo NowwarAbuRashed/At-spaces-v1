@@ -1,0 +1,103 @@
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { LogoMark } from '@/components/shared/logo-mark'
+import { Button } from '@/components/ui/button'
+import { clearVendorSession } from '@/features/auth/store/vendor-session'
+import { vendorPrimaryNavItems, vendorSecondaryNavItems } from '@/features/navigation/vendor-nav-items'
+import { cn } from '@/lib/cn'
+import { ROUTES } from '@/lib/routes'
+
+export interface VendorSidebarProps {
+  collapsed: boolean
+  onToggleCollapse?: () => void
+  onNavigate?: () => void
+  className?: string
+  showCollapseControl?: boolean
+}
+
+export function VendorSidebar({
+  collapsed,
+  onToggleCollapse,
+  onNavigate,
+  className,
+  showCollapseControl = false,
+}: VendorSidebarProps) {
+  const navigate = useNavigate()
+
+  const handleSignOut = () => {
+    clearVendorSession()
+    navigate(ROUTES.VENDOR_LOGIN)
+    onNavigate?.()
+  }
+
+  return (
+    <aside
+      className={cn(
+        'flex h-full flex-col border-r border-app-border bg-app-surface/90 px-3 py-4 shadow-soft backdrop-blur-sm',
+        className,
+      )}
+    >
+      <div className="mb-6 flex items-center justify-between px-2">
+        <LogoMark compact={collapsed} subtitle="Vendor" />
+        {showCollapseControl ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="hidden h-8 w-8 rounded-full p-0 lg:inline-flex"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={onToggleCollapse}
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </Button>
+        ) : null}
+      </div>
+
+      <nav aria-label="Vendor navigation" className="scrollbar-thin flex-1 overflow-y-auto pr-1">
+        <ul className="space-y-1">
+          {vendorPrimaryNavItems.map((item) => (
+            <li key={item.label}>
+              <NavLink
+                to={item.path ?? ROUTES.VENDOR_DASHBOARD}
+                end={item.exact}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  cn(
+                    'flex h-11 items-center rounded-xl px-3 text-sm font-semibold transition-all',
+                    collapsed ? 'justify-center' : 'justify-start gap-3',
+                    isActive
+                      ? 'bg-app-accent text-white shadow-glow'
+                      : 'text-app-muted hover:bg-app-surface-alt hover:text-app-text',
+                  )
+                }
+                title={collapsed ? item.label : undefined}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                {!collapsed ? <span>{item.label}</span> : null}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="mt-4 border-t border-app-border pt-4">
+        {vendorSecondaryNavItems.map((item) => (
+          <button
+            key={item.label}
+            type="button"
+            onClick={handleSignOut}
+            className={cn(
+              'flex h-11 w-full items-center rounded-xl px-3 text-sm font-semibold transition-all',
+              collapsed ? 'justify-center' : 'justify-start gap-3',
+              'text-app-muted hover:bg-app-surface-alt hover:text-app-text',
+            )}
+            title={collapsed ? item.label : undefined}
+          >
+            <item.icon className="h-5 w-5 shrink-0" />
+            {!collapsed ? <span>{item.label}</span> : null}
+          </button>
+        ))}
+      </div>
+    </aside>
+  )
+}
