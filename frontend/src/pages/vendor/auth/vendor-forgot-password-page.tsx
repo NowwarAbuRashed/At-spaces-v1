@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { vendorForgotPasswordRequest } from '@/api/vendor-api'
+import { ApiError } from '@/api/client'
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '@/components/ui'
 import { AuthField } from '@/features/auth/components/auth-field'
 import { VendorAuthShell } from '@/features/vendor-auth/components'
@@ -27,10 +30,21 @@ export function VendorForgotPasswordPage() {
     },
   })
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: vendorForgotPasswordRequest,
+  })
+
   const onSubmit = handleSubmit(async (values) => {
-    await Promise.resolve()
-    setSubmittedEmail(values.email)
-    toast.success('Reset link request captured (placeholder flow).')
+    try {
+      await forgotPasswordMutation.mutateAsync({
+        email: values.email,
+      })
+      setSubmittedEmail(values.email)
+      toast.success('Reset instructions have been sent if the email exists.')
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Unable to send reset instructions.'
+      toast.error(message)
+    }
   })
 
   return (
@@ -43,7 +57,7 @@ export function VendorForgotPasswordPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Forgot Password</CardTitle>
           <CardDescription>
-            This is a validation-ready placeholder. Real email dispatch will be added in a later phase.
+            Enter the email associated with your vendor account to receive password reset instructions.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -69,7 +83,8 @@ export function VendorForgotPasswordPage() {
             <div className="rounded-2xl border border-app-border bg-app-surface-alt/70 p-4">
               <p className="font-semibold text-app-text">Reset request submitted</p>
               <p className="mt-1 text-sm text-app-muted">
-                A placeholder reset link was issued for <span className="text-app-accent">{submittedEmail}</span>.
+                If this email is registered, a reset link was sent to{' '}
+                <span className="text-app-accent">{submittedEmail}</span>.
               </p>
             </div>
           )}

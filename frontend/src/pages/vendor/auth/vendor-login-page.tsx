@@ -1,12 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { vendorLoginRequest } from '@/api/vendor-api'
+import { ApiError } from '@/api/client'
 import { Button, Input } from '@/components/ui'
 import { AuthField } from '@/features/auth/components/auth-field'
-import { startVendorSession } from '@/features/auth/store/vendor-session'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { VendorAuthShell } from '@/features/vendor-auth/components'
 import {
   vendorLoginSchema,
@@ -17,11 +20,13 @@ import { ROUTES } from '@/lib/routes'
 export function VendorLoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { setAuthenticatedSession } = useVendorAuth()
   const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<VendorLoginFormValues>({
     resolver: zodResolver(vendorLoginSchema),
@@ -29,6 +34,10 @@ export function VendorLoginPage() {
       email: 'vendor@atspaces.com',
       password: '',
     },
+  })
+
+  const loginMutation = useMutation({
+    mutationFn: vendorLoginRequest,
   })
 
   const redirectPath = useMemo(() => {
@@ -40,11 +49,23 @@ export function VendorLoginPage() {
     return ROUTES.VENDOR_DASHBOARD
   }, [location.state])
 
-  const onSubmit = handleSubmit(async () => {
-    await Promise.resolve()
-    startVendorSession()
-    toast.success('Vendor sign in completed (placeholder flow).')
-    navigate(redirectPath, { replace: true })
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      const response = await loginMutation.mutateAsync({
+        email: values.email,
+        password: values.password,
+      })
+      setAuthenticatedSession({
+        accessToken: response.accessToken,
+        user: response.user,
+      })
+      toast.success(`Welcome back, ${response.user.fullName}.`)
+      navigate(redirectPath, { replace: true })
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Vendor sign in failed.'
+      setError('password', { type: 'manual', message })
+      toast.error(message)
+    }
   })
 
   return (
@@ -100,7 +121,12 @@ export function VendorLoginPage() {
           />
         </AuthField>
 
-        <Button type="submit" size="lg" fullWidth isLoading={isSubmitting}>
+        <Button
+          type="submit"
+          size="lg"
+          fullWidth
+          isLoading={isSubmitting || loginMutation.isPending}
+        >
           Sign In
         </Button>
 

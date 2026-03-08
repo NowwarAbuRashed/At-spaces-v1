@@ -6,6 +6,7 @@ const bookingStatusVariantMap: Record<VendorBookingStatus, 'success' | 'warning'
   pending: 'warning',
   completed: 'info',
   no_show: 'danger',
+  cancelled: 'danger',
 }
 
 const bookingStatusLabelMap: Record<VendorBookingStatus, string> = {
@@ -13,6 +14,7 @@ const bookingStatusLabelMap: Record<VendorBookingStatus, string> = {
   pending: 'Pending',
   completed: 'Completed',
   no_show: 'No Show',
+  cancelled: 'Cancelled',
 }
 
 export interface VendorBookingStatusBadgeProps {

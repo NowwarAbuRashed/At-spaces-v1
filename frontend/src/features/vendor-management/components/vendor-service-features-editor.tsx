@@ -12,6 +12,8 @@ export interface VendorServiceFeaturesEditorProps {
   onUpdateQuantity: (featureId: string, quantity: number) => void
   onRemoveFeature: (featureId: string) => void
   onAddFeature: (input: VendorNewServiceFeatureInput) => void
+  disabled?: boolean
+  disabledMessage?: string
 }
 
 export function VendorServiceFeaturesEditor({
@@ -19,6 +21,8 @@ export function VendorServiceFeaturesEditor({
   onUpdateQuantity,
   onRemoveFeature,
   onAddFeature,
+  disabled = false,
+  disabledMessage,
 }: VendorServiceFeaturesEditorProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -42,6 +46,7 @@ export function VendorServiceFeaturesEditor({
                 type="button"
                 className="inline-flex items-center gap-1 text-xs font-semibold text-app-danger transition-colors hover:text-red-300"
                 onClick={() => onRemoveFeature(feature.id)}
+                disabled={disabled}
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Remove
@@ -54,6 +59,7 @@ export function VendorServiceFeaturesEditor({
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-app-border text-app-text transition-colors hover:border-app-accent/50"
                 onClick={() => onUpdateQuantity(feature.id, Math.max(0, feature.quantity - 1))}
                 aria-label={`Decrease quantity for ${feature.name}`}
+                disabled={disabled}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -65,6 +71,7 @@ export function VendorServiceFeaturesEditor({
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-app-border text-app-text transition-colors hover:border-app-accent/50"
                 onClick={() => onUpdateQuantity(feature.id, feature.quantity + 1)}
                 aria-label={`Increase quantity for ${feature.name}`}
+                disabled={disabled}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -76,11 +83,17 @@ export function VendorServiceFeaturesEditor({
       <div className="rounded-xl border border-dashed border-app-border p-3">
         <p className="text-sm font-semibold text-app-text">Add Mock Feature</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Feature name" />
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Feature name"
+            disabled={disabled}
+          />
           <Input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Short description"
+            disabled={disabled}
           />
           <Input
             type="number"
@@ -88,17 +101,21 @@ export function VendorServiceFeaturesEditor({
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
             placeholder="Quantity"
+            disabled={disabled}
           />
           <Input
             value={unitLabel}
             onChange={(event) => setUnitLabel(event.target.value)}
             placeholder="Unit label"
+            disabled={disabled}
           />
         </div>
+        {disabledMessage ? <p className="mt-3 text-xs font-semibold text-app-muted">{disabledMessage}</p> : null}
         <Button
           type="button"
           variant="outline"
           className="mt-3"
+          disabled={disabled}
           onClick={() => {
             const parsedQuantity = Number(quantity)
             const nextQuantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity

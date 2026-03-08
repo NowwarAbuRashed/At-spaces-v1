@@ -16,6 +16,8 @@ export interface VendorServiceCardProps {
   onUpdateFeatureQuantity: (serviceId: string, featureId: string, quantity: number) => void
   onRemoveFeature: (serviceId: string, featureId: string) => void
   onAddFeature: (serviceId: string, input: VendorNewServiceFeatureInput) => void
+  featureControlsDisabled?: boolean
+  featureUnavailableMessage?: string
 }
 
 export function VendorServiceCard({
@@ -25,6 +27,8 @@ export function VendorServiceCard({
   onUpdateFeatureQuantity,
   onRemoveFeature,
   onAddFeature,
+  featureControlsDisabled = false,
+  featureUnavailableMessage,
 }: VendorServiceCardProps) {
   const availabilityPercent = Math.round((service.activeCapacity / service.totalCapacity) * 100)
 
@@ -62,6 +66,8 @@ export function VendorServiceCard({
             onUpdateQuantity={(featureId, quantity) => onUpdateFeatureQuantity(service.id, featureId, quantity)}
             onRemoveFeature={(featureId) => onRemoveFeature(service.id, featureId)}
             onAddFeature={(input) => onAddFeature(service.id, input)}
+            disabled={featureControlsDisabled}
+            disabledMessage={featureUnavailableMessage}
           />
         </div>
       </CardContent>

@@ -8,7 +8,7 @@ export interface VendorPriceEditorProps {
   onPriceUnitChange: (value: VendorPriceUnit) => void
 }
 
-const priceUnits: VendorPriceUnit[] = ['hour', 'session', 'booking']
+const priceUnits: VendorPriceUnit[] = ['hour', 'day', 'week', 'month']
 
 export function VendorPriceEditor({
   pricePerUnit,

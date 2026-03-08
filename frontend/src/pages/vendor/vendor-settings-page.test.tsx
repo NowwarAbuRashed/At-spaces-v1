@@ -1,21 +1,71 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
+import { AppProviders } from '@/app/providers'
 import { VendorSettingsPage } from '@/pages/vendor/vendor-settings-page'
+import {
+  createJsonResponse,
+  mockFetch,
+  setVendorSession,
+  setupBrowserStorageMocks,
+} from '@/pages/vendor/test-utils'
 
 describe('VendorSettingsPage', () => {
-  it('renders profile settings and supports local edits/toggles', () => {
-    render(<VendorSettingsPage />)
+  beforeEach(() => {
+    setupBrowserStorageMocks()
+    setVendorSession()
+  })
 
-    expect(screen.getByText('Vendor Settings')).toBeInTheDocument()
-    expect(screen.getByText('Profile & Preferences')).toBeInTheDocument()
+  it('loads vendor profile and updates profile fields through backend API', async () => {
+    let updatePayload: unknown = null
 
-    const fullNameInput = screen.getByDisplayValue('Maya Al-Masri')
-    fireEvent.change(fullNameInput, { target: { value: 'Maya A. Masri' } })
-    expect(screen.getByDisplayValue('Maya A. Masri')).toBeInTheDocument()
+    mockFetch(async (input, init) => {
+      const url = new URL(typeof input === 'string' ? input : input.toString())
+      const method = init?.method ?? 'GET'
 
-    const smsAlertsSwitch = screen.getByRole('switch', { name: 'SMS Alerts' })
-    expect(smsAlertsSwitch).toHaveAttribute('aria-checked', 'false')
-    fireEvent.click(smsAlertsSwitch)
-    expect(smsAlertsSwitch).toHaveAttribute('aria-checked', 'true')
+      if (url.pathname === '/api/users/me' && method === 'GET') {
+        return createJsonResponse({
+          id: 2,
+          fullName: 'Maya Al-Masri',
+          email: 'maya@vendor.com',
+          phoneNumber: '+962700000000',
+          role: 'vendor',
+        })
+      }
+
+      if (url.pathname === '/api/users/me' && method === 'PUT') {
+        updatePayload = init?.body ? JSON.parse(String(init.body)) : null
+        return createJsonResponse({
+          id: 2,
+          fullName: 'Maya Updated',
+          email: 'maya@vendor.com',
+          phoneNumber: '+962700000000',
+          role: 'vendor',
+        })
+      }
+
+      throw new Error(`Unhandled request in test: ${method} ${url.pathname}`)
+    })
+
+    render(
+      <AppProviders>
+        <MemoryRouter>
+          <VendorSettingsPage />
+        </MemoryRouter>
+      </AppProviders>,
+    )
+
+    expect(await screen.findByDisplayValue('Maya Al-Masri')).toBeInTheDocument()
+    fireEvent.change(screen.getByDisplayValue('Maya Al-Masri'), { target: { value: 'Maya Updated' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save Settings' }))
+
+    await waitFor(() => {
+      expect(updatePayload).toEqual({
+        fullName: 'Maya Updated',
+        email: 'maya@vendor.com',
+      })
+    })
+
+    expect(screen.getByRole('switch', { name: 'SMS Alerts' })).toBeDisabled()
   })
 })

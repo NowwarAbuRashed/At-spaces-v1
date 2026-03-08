@@ -40,7 +40,7 @@ export interface VendorFacility {
   details: string
 }
 
-export type VendorPriceUnit = 'hour' | 'session' | 'booking'
+export type VendorPriceUnit = 'hour' | 'day' | 'week' | 'month'
 
 export interface VendorServiceFeature {
   id: string

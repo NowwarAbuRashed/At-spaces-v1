@@ -13,6 +13,10 @@ export interface VendorSettingsFormProps {
   onProfileChange: (field: keyof VendorProfileSettings, value: string) => void
   onPreferenceChange: (field: keyof VendorPreferenceSettings, value: boolean) => void
   onSave: () => void
+  profileDisabled?: boolean
+  preferencesDisabled?: boolean
+  isSaving?: boolean
+  preferencesUnavailableMessage?: string
 }
 
 export function VendorSettingsForm({
@@ -21,6 +25,10 @@ export function VendorSettingsForm({
   onProfileChange,
   onPreferenceChange,
   onSave,
+  profileDisabled = false,
+  preferencesDisabled = false,
+  isSaving = false,
+  preferencesUnavailableMessage,
 }: VendorSettingsFormProps) {
   return (
     <div className="space-y-6">
@@ -32,17 +40,23 @@ export function VendorSettingsForm({
             <Input
               value={profile.fullName}
               onChange={(event) => onProfileChange('fullName', event.target.value)}
+              disabled={profileDisabled}
             />
           </label>
           <label className="space-y-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-app-muted">Email</span>
-            <Input value={profile.email} onChange={(event) => onProfileChange('email', event.target.value)} />
+            <Input
+              value={profile.email}
+              onChange={(event) => onProfileChange('email', event.target.value)}
+              disabled={profileDisabled}
+            />
           </label>
           <label className="space-y-2 md:col-span-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-app-muted">Phone Number</span>
             <Input
               value={profile.phoneNumber}
               onChange={(event) => onProfileChange('phoneNumber', event.target.value)}
+              disabled={profileDisabled}
             />
           </label>
         </div>
@@ -55,19 +69,25 @@ export function VendorSettingsForm({
           description="Receive request and operational updates by email."
           enabled={preferences.emailAlerts}
           onToggle={(next) => onPreferenceChange('emailAlerts', next)}
+          disabled={preferencesDisabled}
         />
         <SettingsToggleRow
           title="SMS Alerts"
           description="Get urgent status changes directly to your phone."
           enabled={preferences.smsAlerts}
           onToggle={(next) => onPreferenceChange('smsAlerts', next)}
+          disabled={preferencesDisabled}
         />
         <SettingsToggleRow
           title="Weekly Digest"
           description="Receive a weekly performance summary."
           enabled={preferences.weeklyDigest}
           onToggle={(next) => onPreferenceChange('weeklyDigest', next)}
+          disabled={preferencesDisabled}
         />
+        {preferencesUnavailableMessage ? (
+          <p className="text-xs font-semibold text-app-muted">{preferencesUnavailableMessage}</p>
+        ) : null}
       </section>
 
       <section className="rounded-xl border border-dashed border-app-border bg-app-surface-alt/35 p-4">
@@ -80,7 +100,7 @@ export function VendorSettingsForm({
         </p>
       </section>
 
-      <Button type="button" onClick={onSave}>
+      <Button type="button" onClick={onSave} isLoading={isSaving} disabled={profileDisabled}>
         Save Settings
       </Button>
     </div>

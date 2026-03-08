@@ -36,11 +36,21 @@ function setStoredSession(value: string) {
 function clearStoredSession() {
   window.localStorage.removeItem('atspaces.admin.session')
   window.sessionStorage.removeItem('atspaces.admin.session.runtime')
-  window.sessionStorage.removeItem('atspaces.vendor.phase1.session')
+  window.sessionStorage.removeItem('atspaces.vendor.session.runtime')
 }
 
 function setVendorSession() {
-  window.sessionStorage.setItem('atspaces.vendor.phase1.session', 'active')
+  window.sessionStorage.setItem(
+    'atspaces.vendor.session.runtime',
+    JSON.stringify({
+      accessToken: 'vendor-token',
+      user: {
+        id: 2,
+        role: 'vendor',
+        fullName: 'Vendor User',
+      },
+    }),
+  )
 }
 
 function renderRoutes(path: string) {
@@ -106,10 +116,13 @@ describe('AppRoutes', () => {
     expect(screen.getByText('Sign in to Vendor Workspace')).toBeInTheDocument()
   })
 
-  it('redirects vendor login route to dashboard when vendor session exists', () => {
+  it('redirects vendor login route to dashboard when vendor session exists', async () => {
     setVendorSession()
     renderRoutes('/vendor/login')
 
-    expect(screen.getAllByText('Vendor Dashboard').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Sign in to Vendor Workspace')).not.toBeInTheDocument()
+    expect(
+      await screen.findByText(/Loading vendor dashboard|Unable to load vendor dashboard|Vendor Dashboard/i),
+    ).toBeInTheDocument()
   })
 })

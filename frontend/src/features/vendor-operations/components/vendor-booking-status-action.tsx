@@ -5,20 +5,22 @@ export interface VendorBookingStatusActionProps {
   status: VendorBookingStatus
   onMarkCompleted: () => void
   onMarkNoShow: () => void
+  isUpdating?: boolean
 }
 
 function canMarkCompleted(status: VendorBookingStatus) {
-  return status !== 'completed' && status !== 'no_show'
+  return status !== 'completed' && status !== 'no_show' && status !== 'cancelled'
 }
 
 function canMarkNoShow(status: VendorBookingStatus) {
-  return status !== 'no_show' && status !== 'completed'
+  return status !== 'no_show' && status !== 'completed' && status !== 'cancelled'
 }
 
 export function VendorBookingStatusAction({
   status,
   onMarkCompleted,
   onMarkNoShow,
+  isUpdating = false,
 }: VendorBookingStatusActionProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -26,7 +28,7 @@ export function VendorBookingStatusAction({
         type="button"
         size="sm"
         variant="secondary"
-        disabled={!canMarkCompleted(status)}
+        disabled={!canMarkCompleted(status) || isUpdating}
         onClick={onMarkCompleted}
       >
         Mark Completed
@@ -35,7 +37,7 @@ export function VendorBookingStatusAction({
         type="button"
         size="sm"
         variant="outline"
-        disabled={!canMarkNoShow(status)}
+        disabled={!canMarkNoShow(status) || isUpdating}
         onClick={onMarkNoShow}
       >
         Mark No Show

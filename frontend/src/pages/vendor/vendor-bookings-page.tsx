@@ -1,43 +1,70 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/shared/empty-state'
+import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { SectionCard } from '@/components/shared/section-card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import {
   VendorBookingRow,
   VendorBookingsFilterBar,
 } from '@/features/vendor-operations/components'
-import {
-  vendorBookingsMock,
-  vendorBookingStatusOptions,
-  vendorOperationServicesMock,
-} from '@/features/vendor-operations/data/vendor-operations-mock-data'
 import type {
-  VendorBooking,
   VendorBookingStatus,
+  VendorBookingStatusOption,
 } from '@/features/vendor-operations/types'
+import {
+  useUpdateVendorBookingStatusMutation,
+  useVendorBookingsQuery,
+  useVendorServicesQuery,
+} from '@/features/vendor/hooks/use-vendor-queries'
+import { mapVendorBookingToView, mapVendorServiceToOption } from '@/features/vendor/lib/vendor-mappers'
+import { getInlineApiErrorMessage } from '@/lib/api-error'
+
+const bookingStatusOptions: VendorBookingStatusOption[] = [
+  { value: 'all', label: 'All Statuses' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'no_show', label: 'No Show' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
 export function VendorBookingsPage() {
-  const [bookings, setBookings] = useState<VendorBooking[]>(vendorBookingsMock)
+  const { accessToken } = useVendorAuth()
   const [dateFilter, setDateFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | VendorBookingStatus>('all')
   const [serviceFilter, setServiceFilter] = useState<'all' | string>('all')
 
+  const bookingsQuery = useVendorBookingsQuery(accessToken, dateFilter || undefined)
+  const servicesQuery = useVendorServicesQuery(accessToken)
+  const updateStatusMutation = useUpdateVendorBookingStatusMutation(accessToken, dateFilter || undefined)
+
+  const serviceOptions = useMemo(
+    () => (servicesQuery.data?.items ?? []).map(mapVendorServiceToOption),
+    [servicesQuery.data?.items],
+  )
+
   const serviceMap = useMemo(
-    () => new Map(vendorOperationServicesMock.map((service) => [service.id, service.name])),
-    [],
+    () => new Map(serviceOptions.map((service) => [service.id, service.name])),
+    [serviceOptions],
+  )
+
+  const bookings = useMemo(
+    () => (bookingsQuery.data?.items ?? []).map(mapVendorBookingToView),
+    [bookingsQuery.data?.items],
   )
 
   const filteredBookings = useMemo(
     () =>
       bookings.filter((booking) => {
-        const matchesDate = !dateFilter || booking.date === dateFilter
         const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
         const matchesService = serviceFilter === 'all' || booking.serviceId === serviceFilter
-        return matchesDate && matchesStatus && matchesService
+        return matchesStatus && matchesService
       }),
-    [bookings, dateFilter, serviceFilter, statusFilter],
+    [bookings, serviceFilter, statusFilter],
   )
 
   const totalQuantity = useMemo(
@@ -45,26 +72,56 @@ export function VendorBookingsPage() {
     [filteredBookings],
   )
 
-  const updateBookingStatus = (bookingId: string, status: VendorBookingStatus) => {
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === bookingId
-          ? {
-              ...booking,
-              status,
-            }
-          : booking,
-      ),
-    )
+  const updateBookingStatus = async (bookingId: string, status: 'completed' | 'no_show') => {
+    const parsedId = Number(bookingId)
+    if (Number.isNaN(parsedId)) {
+      toast.error('Invalid booking identifier.')
+      return
+    }
 
-    toast.success(`Booking ${bookingId} marked as ${status}.`)
+    try {
+      await updateStatusMutation.mutateAsync({
+        bookingId: parsedId,
+        status,
+      })
+      toast.success(`Booking ${bookingId} marked as ${status}.`)
+    } catch (error) {
+      toast.error(getInlineApiErrorMessage(error, 'Failed to update booking status.', { sessionLabel: 'vendor' }))
+    }
+  }
+
+  if (bookingsQuery.isPending || servicesQuery.isPending) {
+    return <LoadingState label="Loading bookings..." />
+  }
+
+  if (bookingsQuery.isError || servicesQuery.isError) {
+    const error = bookingsQuery.error ?? servicesQuery.error
+    return (
+      <EmptyState
+        title="Unable to load bookings"
+        description={getInlineApiErrorMessage(error, 'Please retry in a moment.', {
+          sessionLabel: 'vendor',
+        })}
+        action={
+          <Button
+            variant="outline"
+            onClick={() => {
+              void bookingsQuery.refetch()
+              void servicesQuery.refetch()
+            }}
+          >
+            Retry
+          </Button>
+        }
+      />
+    )
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Bookings Management"
-        description="Review upcoming reservations and update booking outcomes in local mock state."
+        description="Review upcoming reservations and update booking outcomes from live vendor booking APIs."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="neutral">{filteredBookings.length} bookings</Badge>
@@ -80,23 +137,28 @@ export function VendorBookingsPage() {
         onStatusChange={setStatusFilter}
         serviceId={serviceFilter}
         onServiceIdChange={setServiceFilter}
-        statusOptions={vendorBookingStatusOptions}
-        serviceOptions={vendorOperationServicesMock}
+        statusOptions={bookingStatusOptions}
+        serviceOptions={serviceOptions}
       />
 
-      <SectionCard
-        title="Vendor Bookings"
-        description="Use status actions to mark completed or no-show bookings. Changes are local only."
-      >
+      <SectionCard title="Vendor Bookings" description="Use status actions to mark completed or no-show bookings.">
         {filteredBookings.length ? (
           <div className="space-y-3">
             {filteredBookings.map((booking) => (
               <VendorBookingRow
                 key={booking.id}
                 booking={booking}
-                serviceName={serviceMap.get(booking.serviceId) ?? 'Service'}
-                onMarkCompleted={(bookingId) => updateBookingStatus(bookingId, 'completed')}
-                onMarkNoShow={(bookingId) => updateBookingStatus(bookingId, 'no_show')}
+                serviceName={serviceMap.get(booking.serviceId) ?? `Service #${booking.serviceId}`}
+                onMarkCompleted={(bookingId) => {
+                  void updateBookingStatus(bookingId, 'completed')
+                }}
+                onMarkNoShow={(bookingId) => {
+                  void updateBookingStatus(bookingId, 'no_show')
+                }}
+                isStatusUpdating={
+                  updateStatusMutation.isPending &&
+                  updateStatusMutation.variables?.bookingId === Number(booking.id)
+                }
               />
             ))}
           </div>

@@ -1,39 +1,64 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/shared/empty-state'
+import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { SectionCard } from '@/components/shared/section-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import {
   VendorAvailabilityEditor,
   VendorAvailabilitySlotCard,
 } from '@/features/vendor-operations/components'
+import type { VendorAvailabilitySlot, VendorAvailabilitySlotInput } from '@/features/vendor-operations/types'
 import {
-  vendorAvailabilitySlotsMock,
-  vendorOperationServicesMock,
-} from '@/features/vendor-operations/data/vendor-operations-mock-data'
-import type {
-  VendorAvailabilitySlot,
-  VendorAvailabilitySlotInput,
-} from '@/features/vendor-operations/types'
+  useUpsertVendorAvailabilityMutation,
+  useVendorServicesQuery,
+} from '@/features/vendor/hooks/use-vendor-queries'
+import { mapVendorServiceToOption } from '@/features/vendor/lib/vendor-mappers'
+import { getInlineApiErrorMessage } from '@/lib/api-error'
 
 const DEFAULT_SLOT_START = '09:00'
 const DEFAULT_SLOT_END = '10:00'
 
+function createSlotId() {
+  return `slot-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
+}
+
 export function VendorAvailabilityPage() {
-  const [slots, setSlots] = useState<VendorAvailabilitySlot[]>(vendorAvailabilitySlotsMock)
-  const [selectedDate, setSelectedDate] = useState(vendorAvailabilitySlotsMock[0]?.date ?? '2026-03-08')
+  const { accessToken } = useVendorAuth()
+  const servicesQuery = useVendorServicesQuery(accessToken)
+  const upsertAvailabilityMutation = useUpsertVendorAvailabilityMutation(accessToken)
+  const [slots, setSlots] = useState<VendorAvailabilitySlot[]>([])
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
   const [selectedServiceId, setSelectedServiceId] = useState<'all' | string>('all')
   const [editorMode, setEditorMode] = useState<'add' | 'edit'>('add')
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null)
+  const [mutatingSlotId, setMutatingSlotId] = useState<string | null>(null)
+
+  const serviceOptions = useMemo(
+    () => (servicesQuery.data?.items ?? []).map(mapVendorServiceToOption),
+    [servicesQuery.data?.items],
+  )
+
+  useEffect(() => {
+    if (!serviceOptions.length) {
+      setSelectedServiceId('all')
+      return
+    }
+
+    if (selectedServiceId !== 'all' && !serviceOptions.some((service) => service.id === selectedServiceId)) {
+      setSelectedServiceId('all')
+    }
+  }, [selectedServiceId, serviceOptions])
 
   const serviceMap = useMemo(
-    () => new Map(vendorOperationServicesMock.map((service) => [service.id, service.name])),
-    [],
+    () => new Map(serviceOptions.map((service) => [service.id, service.name])),
+    [serviceOptions],
   )
 
   const filteredSlots = useMemo(
@@ -46,7 +71,11 @@ export function VendorAvailabilityPage() {
     [selectedDate, selectedServiceId, slots],
   )
 
-  const slotDates = useMemo(() => Array.from(new Set(slots.map((slot) => slot.date))), [slots])
+  const slotDates = useMemo(() => {
+    const dates = new Set(slots.map((slot) => slot.date))
+    dates.add(selectedDate)
+    return Array.from(dates).sort()
+  }, [selectedDate, slots])
 
   const editorInitialValue = useMemo<VendorAvailabilitySlotInput>(() => {
     if (editorMode === 'edit' && editingSlotId) {
@@ -65,13 +94,60 @@ export function VendorAvailabilityPage() {
 
     return {
       date: selectedDate,
-      serviceId: selectedServiceId === 'all' ? vendorOperationServicesMock[0]?.id ?? '' : selectedServiceId,
+      serviceId: selectedServiceId === 'all' ? serviceOptions[0]?.id ?? '' : selectedServiceId,
       startTime: DEFAULT_SLOT_START,
       endTime: DEFAULT_SLOT_END,
       availableUnits: 1,
       state: 'active',
     }
-  }, [editingSlotId, editorMode, selectedDate, selectedServiceId, slots])
+  }, [editingSlotId, editorMode, selectedDate, selectedServiceId, serviceOptions, slots])
+
+  const persistGroup = async (nextSlots: VendorAvailabilitySlot[], serviceId: string, date: string) => {
+    const vendorServiceId = Number(serviceId)
+    if (Number.isNaN(vendorServiceId)) {
+      throw new Error('Invalid service selected.')
+    }
+
+    const dayServiceSlots = nextSlots.filter((slot) => slot.serviceId === serviceId && slot.date === date)
+    if (!dayServiceSlots.length) {
+      throw new Error('Backend requires at least one slot for this service/date update.')
+    }
+
+    await upsertAvailabilityMutation.mutateAsync({
+      vendorServiceId,
+      date,
+      slots: dayServiceSlots.map((slot) => ({
+        start: slot.startTime,
+        end: slot.endTime,
+        availableUnits: slot.state === 'blocked' ? 0 : slot.availableUnits,
+      })),
+    })
+  }
+
+  const applySlotChange = async (
+    buildNext: (current: VendorAvailabilitySlot[]) => VendorAvailabilitySlot[],
+    context: {
+      serviceId: string
+      date: string
+      successMessage: string
+      slotId?: string | null
+    },
+  ) => {
+    const previousSlots = slots
+    const nextSlots = buildNext(previousSlots)
+    setSlots(nextSlots)
+    setMutatingSlotId(context.slotId ?? null)
+
+    try {
+      await persistGroup(nextSlots, context.serviceId, context.date)
+      toast.success(context.successMessage)
+    } catch (error) {
+      setSlots(previousSlots)
+      toast.error(getInlineApiErrorMessage(error, 'Failed to update availability.', { sessionLabel: 'vendor' }))
+    } finally {
+      setMutatingSlotId(null)
+    }
+  }
 
   const handleOpenAdd = () => {
     setEditorMode('add')
@@ -86,45 +162,109 @@ export function VendorAvailabilityPage() {
   }
 
   const handleSaveSlot = (input: VendorAvailabilitySlotInput) => {
-    if (editorMode === 'edit' && editingSlotId) {
-      setSlots((prev) =>
-        prev.map((slot) =>
-          slot.id === editingSlotId
-            ? {
-                ...slot,
-                ...input,
-              }
-            : slot,
-        ),
-      )
-      toast.success('Availability slot updated in local state.')
-    } else {
-      const newSlot: VendorAvailabilitySlot = {
-        id: `slot-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-        ...input,
-      }
-      setSlots((prev) => [...prev, newSlot])
-      toast.success('Availability slot added in local state.')
+    const slotId = editorMode === 'edit' ? editingSlotId : createSlotId()
+    if (!slotId) {
+      return
     }
+
+    const nextSlot: VendorAvailabilitySlot = {
+      id: slotId,
+      date: input.date,
+      serviceId: input.serviceId,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      availableUnits: input.availableUnits,
+      state: input.state,
+    }
+
+    void applySlotChange(
+      (current) => {
+        if (editorMode === 'edit') {
+          return current.map((slot) => (slot.id === slotId ? nextSlot : slot))
+        }
+
+        return [...current, nextSlot]
+      },
+      {
+        serviceId: input.serviceId,
+        date: input.date,
+        successMessage: editorMode === 'edit' ? 'Availability slot updated.' : 'Availability slot created.',
+        slotId,
+      },
+    )
 
     setEditorOpen(false)
   }
 
   const handleRemoveSlot = (slotId: string) => {
-    setSlots((prev) => prev.filter((slot) => slot.id !== slotId))
-    toast.success('Availability slot removed in local state.')
+    const target = slots.find((slot) => slot.id === slotId)
+    if (!target) {
+      return
+    }
+
+    void applySlotChange(
+      (current) => current.filter((slot) => slot.id !== slotId),
+      {
+        serviceId: target.serviceId,
+        date: target.date,
+        successMessage: 'Availability slot removed.',
+        slotId,
+      },
+    )
   }
 
   const handleToggleSlotState = (slotId: string) => {
-    setSlots((prev) =>
-      prev.map((slot) =>
-        slot.id === slotId
-          ? {
-              ...slot,
-              state: slot.state === 'active' ? 'blocked' : 'active',
-            }
-          : slot,
-      ),
+    const target = slots.find((slot) => slot.id === slotId)
+    if (!target) {
+      return
+    }
+
+    void applySlotChange(
+      (current) =>
+        current.map((slot) =>
+          slot.id === slotId
+            ? {
+                ...slot,
+                state: slot.state === 'active' ? 'blocked' : 'active',
+                availableUnits: slot.state === 'active' ? 0 : Math.max(1, slot.availableUnits),
+              }
+            : slot,
+        ),
+      {
+        serviceId: target.serviceId,
+        date: target.date,
+        successMessage: 'Availability slot state updated.',
+        slotId,
+      },
+    )
+  }
+
+  if (servicesQuery.isPending) {
+    return <LoadingState label="Loading services..." />
+  }
+
+  if (servicesQuery.isError) {
+    return (
+      <EmptyState
+        title="Unable to load availability settings"
+        description={getInlineApiErrorMessage(servicesQuery.error, 'Please retry in a moment.', {
+          sessionLabel: 'vendor',
+        })}
+        action={
+          <Button variant="outline" onClick={() => void servicesQuery.refetch()}>
+            Retry
+          </Button>
+        }
+      />
+    )
+  }
+
+  if (!serviceOptions.length) {
+    return (
+      <EmptyState
+        title="No services available"
+        description="Availability requires at least one vendor service."
+      />
     )
   }
 
@@ -136,6 +276,7 @@ export function VendorAvailabilityPage() {
         actions={
           <>
             <Badge variant="neutral">{filteredSlots.length} slots for selected filters</Badge>
+            <Badge variant="subtle">Read endpoint unavailable</Badge>
             <Button type="button" className="gap-2" onClick={handleOpenAdd}>
               <Plus className="h-4 w-4" />
               Add Slot
@@ -177,7 +318,7 @@ export function VendorAvailabilityPage() {
               className="h-11 rounded-xl border border-app-border bg-app-surface-alt px-3 text-sm font-medium text-app-text outline-none transition-all focus:border-app-accent/60 focus:ring-2 focus:ring-app-accent/30"
             >
               <option value="all">All Services</option>
-              {vendorOperationServicesMock.map((service) => (
+              {serviceOptions.map((service) => (
                 <option key={service.id} value={service.id}>
                   {service.name}
                 </option>
@@ -197,13 +338,14 @@ export function VendorAvailabilityPage() {
               onEdit={handleOpenEdit}
               onRemove={handleRemoveSlot}
               onToggleState={handleToggleSlotState}
+              isUpdating={upsertAvailabilityMutation.isPending && mutatingSlotId === slot.id}
             />
           ))}
         </section>
       ) : (
         <EmptyState
-          title="No slots for selected filters"
-          description="Adjust date/service filters or add a new availability slot."
+          title="No local slots yet"
+          description="Backend availability read endpoint is not available. Add slots to upsert new availability."
           action={
             <Button type="button" variant="outline" onClick={handleOpenAdd}>
               Create First Slot
@@ -215,10 +357,11 @@ export function VendorAvailabilityPage() {
       <VendorAvailabilityEditor
         open={editorOpen}
         mode={editorMode}
-        services={vendorOperationServicesMock}
+        services={serviceOptions}
         initialValue={editorInitialValue}
         onClose={() => setEditorOpen(false)}
         onSubmit={handleSaveSlot}
+        isSubmitting={upsertAvailabilityMutation.isPending}
       />
     </div>
   )

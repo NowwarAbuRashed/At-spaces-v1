@@ -14,7 +14,7 @@ export function VendorBranchDetailsEditor({ details, onFieldChange }: VendorBran
   return (
     <SectionCard
       title="Editable Branch Details"
-      description="This section is mock-only in Phase 4 and is designed for future API integration."
+      description="Update branch profile fields before submitting changes to backend."
       className="h-full"
     >
       <div className="space-y-4">

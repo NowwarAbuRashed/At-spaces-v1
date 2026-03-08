@@ -8,6 +8,7 @@ import type { VendorNotification } from '@/features/vendor-control/types'
 export interface VendorNotificationItemProps {
   notification: VendorNotification
   onMarkRead: (id: string) => void
+  isMarkingRead?: boolean
 }
 
 const categoryLabelMap: Record<VendorNotification['category'], string> = {
@@ -17,7 +18,11 @@ const categoryLabelMap: Record<VendorNotification['category'], string> = {
   billing: 'Billing',
 }
 
-export function VendorNotificationItem({ notification, onMarkRead }: VendorNotificationItemProps) {
+export function VendorNotificationItem({
+  notification,
+  onMarkRead,
+  isMarkingRead = false,
+}: VendorNotificationItemProps) {
   return (
     <Card className={cn(!notification.isRead && 'border-app-accent/45')}>
       <CardContent className="space-y-3 pt-5">
@@ -51,7 +56,14 @@ export function VendorNotificationItem({ notification, onMarkRead }: VendorNotif
             <Badge variant="subtle">{categoryLabelMap[notification.category]}</Badge>
           </div>
           {!notification.isRead ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => onMarkRead(notification.id)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onMarkRead(notification.id)}
+              isLoading={isMarkingRead}
+              disabled={isMarkingRead}
+            >
               Mark as read
             </Button>
           ) : null}

@@ -8,10 +8,17 @@ import type {
 
 export interface VendorRequestFormProps {
   services: VendorCapacityServiceOption[]
-  onSubmit: (payload: VendorCapacityRequestInput & { currentCapacity: number }) => void
+  onSubmit: (payload: VendorCapacityRequestInput & { currentCapacity: number }) => void | Promise<void>
+  isSubmitting?: boolean
+  externalError?: string | null
 }
 
-export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps) {
+export function VendorRequestForm({
+  services,
+  onSubmit,
+  isSubmitting = false,
+  externalError = null,
+}: VendorRequestFormProps) {
   const [serviceId, setServiceId] = useState(services[0]?.id ?? '')
   const [requestedCapacity, setRequestedCapacity] = useState('')
   const [reason, setReason] = useState('')
@@ -22,7 +29,7 @@ export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps
     [serviceId, services],
   )
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!selectedService) {
@@ -42,15 +49,19 @@ export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps
     }
 
     setError(null)
-    onSubmit({
-      serviceId: selectedService.id,
-      requestedCapacity: parsedCapacity,
-      reason: reason.trim(),
-      currentCapacity: selectedService.currentCapacity,
-    })
+    try {
+      await onSubmit({
+        serviceId: selectedService.id,
+        requestedCapacity: parsedCapacity,
+        reason: reason.trim(),
+        currentCapacity: selectedService.currentCapacity,
+      })
 
-    setRequestedCapacity('')
-    setReason('')
+      setRequestedCapacity('')
+      setReason('')
+    } catch {
+      // Parent handles error messaging from backend failures.
+    }
   }
 
   return (
@@ -60,6 +71,7 @@ export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps
         <select
           value={serviceId}
           onChange={(event) => setServiceId(event.target.value)}
+          disabled={isSubmitting}
           className="h-11 w-full rounded-xl border border-app-border bg-app-surface-alt px-3 text-sm font-medium text-app-text outline-none transition-all focus:border-app-accent/60 focus:ring-2 focus:ring-app-accent/30"
         >
           {services.map((service) => (
@@ -85,6 +97,7 @@ export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps
           placeholder="Enter requested capacity"
           value={requestedCapacity}
           onChange={(event) => setRequestedCapacity(event.target.value)}
+          disabled={isSubmitting}
         />
       </label>
 
@@ -94,14 +107,16 @@ export function VendorRequestForm({ services, onSubmit }: VendorRequestFormProps
           rows={4}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
+          disabled={isSubmitting}
           className="w-full rounded-xl border border-app-border bg-app-surface-alt px-3 py-2.5 text-sm text-app-text outline-none transition-all placeholder:text-app-muted/90 focus:border-app-accent/60 focus:ring-2 focus:ring-app-accent/30"
           placeholder="Explain why this capacity change is required..."
         />
       </label>
 
       {error ? <p className="text-sm font-semibold text-app-danger">{error}</p> : null}
+      {!error && externalError ? <p className="text-sm font-semibold text-app-danger">{externalError}</p> : null}
 
-      <Button type="submit" className="w-full sm:w-auto">
+      <Button type="submit" className="w-full sm:w-auto" isLoading={isSubmitting}>
         Submit Capacity Request
       </Button>
     </form>

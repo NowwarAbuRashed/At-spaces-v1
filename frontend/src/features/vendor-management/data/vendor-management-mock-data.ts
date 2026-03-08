@@ -64,7 +64,7 @@ export const vendorFacilitiesMock: VendorFacility[] = [
   },
 ]
 
-export const vendorPriceUnitOptions: VendorPriceUnit[] = ['hour', 'session', 'booking']
+export const vendorPriceUnitOptions: VendorPriceUnit[] = ['hour', 'day', 'week', 'month']
 
 export const vendorServicesMock: VendorService[] = [
   {
@@ -99,7 +99,7 @@ export const vendorServicesMock: VendorService[] = [
     description: 'Private room booking for team sessions and external client meetings.',
     status: 'active',
     pricePerUnit: 140,
-    priceUnit: 'session',
+    priceUnit: 'day',
     activeCapacity: 8,
     totalCapacity: 10,
     features: [
@@ -125,7 +125,7 @@ export const vendorServicesMock: VendorService[] = [
     description: 'Flexible lounge access for short stay bookings and guest waiting sessions.',
     status: 'pending',
     pricePerUnit: 65,
-    priceUnit: 'booking',
+    priceUnit: 'week',
     activeCapacity: 22,
     totalCapacity: 30,
     features: [

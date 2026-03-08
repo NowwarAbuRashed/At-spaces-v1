@@ -1,21 +1,50 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { EmptyState } from '@/components/shared/empty-state'
+import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { SectionCard } from '@/components/shared/section-card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { VendorSettingsForm } from '@/features/vendor-control/components'
-import {
-  vendorPreferenceSettingsMock,
-  vendorProfileSettingsMock,
-} from '@/features/vendor-control/data/vendor-control-mock-data'
+import { vendorPreferenceSettingsMock } from '@/features/vendor-control/data/vendor-control-mock-data'
 import type {
   VendorPreferenceSettings,
   VendorProfileSettings,
 } from '@/features/vendor-control/types'
+import {
+  useUpdateVendorProfileMutation,
+  useVendorProfileQuery,
+} from '@/features/vendor/hooks/use-vendor-queries'
+import { getInlineApiErrorMessage } from '@/lib/api-error'
+
+const PREFERENCES_UNAVAILABLE_MESSAGE =
+  'Notification preference endpoints are not available yet. Preferences are shown as unavailable.'
 
 export function VendorSettingsPage() {
-  const [profile, setProfile] = useState<VendorProfileSettings>(vendorProfileSettingsMock)
+  const { accessToken } = useVendorAuth()
+  const profileQuery = useVendorProfileQuery(accessToken)
+  const updateProfileMutation = useUpdateVendorProfileMutation(accessToken)
+  const [profile, setProfile] = useState<VendorProfileSettings>({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+  })
   const [preferences, setPreferences] = useState<VendorPreferenceSettings>(vendorPreferenceSettingsMock)
+
+  useEffect(() => {
+    if (!profileQuery.data) {
+      return
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProfile({
+      fullName: profileQuery.data.fullName,
+      email: profileQuery.data.email ?? '',
+      phoneNumber: profileQuery.data.phoneNumber ?? '',
+    })
+  }, [profileQuery.data])
 
   const handleProfileChange = (field: keyof VendorProfileSettings, value: string) => {
     setProfile((prev) => ({
@@ -31,24 +60,66 @@ export function VendorSettingsPage() {
     }))
   }
 
+  const handleSave = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({
+        fullName: profile.fullName.trim(),
+        email: profile.email.trim(),
+      })
+      toast.success('Vendor profile updated.')
+      toast.info(PREFERENCES_UNAVAILABLE_MESSAGE)
+      void profileQuery.refetch()
+    } catch (error) {
+      toast.error(getInlineApiErrorMessage(error, 'Failed to update vendor profile.', { sessionLabel: 'vendor' }))
+    }
+  }
+
+  if (profileQuery.isPending) {
+    return <LoadingState label="Loading vendor settings..." />
+  }
+
+  if (profileQuery.isError) {
+    return (
+      <EmptyState
+        title="Unable to load vendor settings"
+        description={getInlineApiErrorMessage(profileQuery.error, 'Please retry in a moment.', {
+          sessionLabel: 'vendor',
+        })}
+        action={
+          <Button variant="outline" onClick={() => void profileQuery.refetch()}>
+            Retry
+          </Button>
+        }
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Vendor Settings"
         description="Manage profile details and communication preferences for your vendor workspace."
-        actions={<Badge variant="neutral">Mock Preferences</Badge>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Badge variant="neutral">Profile Synced</Badge>
+            <Badge variant="subtle">Preferences Unavailable</Badge>
+          </div>
+        }
       />
 
-      <SectionCard
-        title="Profile & Preferences"
-        description="All updates stay in local mock state for this phase."
-      >
+      <SectionCard title="Profile & Preferences" description="Update profile details via backend user profile APIs.">
         <VendorSettingsForm
           profile={profile}
           preferences={preferences}
           onProfileChange={handleProfileChange}
           onPreferenceChange={handlePreferenceChange}
-          onSave={() => toast.success('Settings updated in local state (mock-only).')}
+          onSave={() => {
+            void handleSave()
+          }}
+          isSaving={updateProfileMutation.isPending}
+          profileDisabled={updateProfileMutation.isPending}
+          preferencesDisabled
+          preferencesUnavailableMessage={PREFERENCES_UNAVAILABLE_MESSAGE}
         />
       </SectionCard>
     </div>

@@ -1,7 +1,10 @@
 import { Menu, X } from 'lucide-react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { cn } from '@/lib/cn'
 import { ROUTES } from '@/lib/routes'
@@ -19,9 +22,25 @@ const PAGE_TITLES: Record<string, string> = {
 }
 
 export function VendorLayout() {
+  const navigate = useNavigate()
+  const {
+    hasRefreshAuthFailure,
+    consumeRefreshAuthFailure,
+    isBackendUnavailable,
+  } = useVendorAuth()
   const { collapsed, mobileOpen, openMobile, closeMobile, toggleCollapse } = useSidebar()
   const location = useLocation()
   const currentPageTitle = PAGE_TITLES[location.pathname] ?? 'Vendor'
+
+  useEffect(() => {
+    if (!hasRefreshAuthFailure) {
+      return
+    }
+
+    toast.error('Vendor session expired. Please sign in again.')
+    consumeRefreshAuthFailure()
+    navigate(ROUTES.VENDOR_LOGIN, { replace: true })
+  }, [consumeRefreshAuthFailure, hasRefreshAuthFailure, navigate])
 
   return (
     <div className="min-h-screen bg-app-bg text-app-text">
@@ -69,9 +88,16 @@ export function VendorLayout() {
               <p className="font-heading text-lg font-semibold text-app-text">{currentPageTitle}</p>
             </div>
 
-            <Badge variant="accent" className="hidden sm:inline-flex">
-              Vendor Workspace
-            </Badge>
+            <div className="flex items-center gap-2">
+              {isBackendUnavailable ? (
+                <span className="hidden items-center rounded-full border border-app-warning/40 bg-app-warning/10 px-3 py-1.5 text-xs font-semibold text-app-warning sm:inline-flex">
+                  Backend Offline
+                </span>
+              ) : null}
+              <Badge variant="accent" className="hidden sm:inline-flex">
+                Vendor Workspace
+              </Badge>
+            </div>
           </div>
         </header>
 

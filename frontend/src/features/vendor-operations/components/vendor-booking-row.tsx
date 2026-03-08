@@ -9,6 +9,7 @@ export interface VendorBookingRowProps {
   serviceName: string
   onMarkCompleted: (bookingId: string) => void
   onMarkNoShow: (bookingId: string) => void
+  isStatusUpdating?: boolean
 }
 
 export function VendorBookingRow({
@@ -16,6 +17,7 @@ export function VendorBookingRow({
   serviceName,
   onMarkCompleted,
   onMarkNoShow,
+  isStatusUpdating = false,
 }: VendorBookingRowProps) {
   return (
     <Card className="w-full" data-testid={`booking-${booking.id}`}>
@@ -45,6 +47,7 @@ export function VendorBookingRow({
           status={booking.status}
           onMarkCompleted={() => onMarkCompleted(booking.id)}
           onMarkNoShow={() => onMarkNoShow(booking.id)}
+          isUpdating={isStatusUpdating}
         />
       </CardContent>
     </Card>

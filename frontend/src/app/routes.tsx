@@ -3,7 +3,7 @@ import { AdminLayout } from '@/layouts/admin-layout'
 import { VendorLayout } from '@/layouts/vendor-layout'
 import { LoadingState } from '@/components/shared/loading-state'
 import { useAuth } from '@/features/auth/store/auth-context'
-import { hasVendorSession } from '@/features/auth/store/vendor-session'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { ForgotPasswordPage } from '@/pages/auth/forgot-password-page'
 import { LoginPage } from '@/pages/auth/login-page'
 import { AnalyticsPage } from '@/pages/management/analytics-page'
@@ -43,9 +43,14 @@ function RequireAdminAuth() {
 }
 
 function RequireVendorAuth() {
+  const { isAuthenticated, isHydrating } = useVendorAuth()
   const location = useLocation()
 
-  if (!hasVendorSession()) {
+  if (isHydrating) {
+    return <LoadingState label="Restoring vendor session..." />
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to={ROUTES.VENDOR_LOGIN} replace state={{ from: location.pathname }} />
   }
 
@@ -53,11 +58,27 @@ function RequireVendorAuth() {
 }
 
 function RequireVendorGuest() {
-  if (hasVendorSession()) {
+  const { isAuthenticated, isHydrating } = useVendorAuth()
+
+  if (isHydrating) {
+    return <LoadingState label="Checking vendor session..." />
+  }
+
+  if (isAuthenticated) {
     return <Navigate to={ROUTES.VENDOR_DASHBOARD} replace />
   }
 
   return <Outlet />
+}
+
+function VendorEntryRedirect() {
+  const { isAuthenticated, isHydrating } = useVendorAuth()
+
+  if (isHydrating) {
+    return <LoadingState label="Checking vendor session..." />
+  }
+
+  return <Navigate to={isAuthenticated ? ROUTES.VENDOR_DASHBOARD : ROUTES.VENDOR_LOGIN} replace />
 }
 
 export function AppRoutes() {
@@ -69,15 +90,7 @@ export function AppRoutes() {
         <Route path={ROUTES.VENDOR_LOGIN} element={<VendorLoginPage />} />
         <Route path={ROUTES.VENDOR_FORGOT_PASSWORD} element={<VendorForgotPasswordPage />} />
       </Route>
-      <Route
-        path="/vendor"
-        element={
-          <Navigate
-            to={hasVendorSession() ? ROUTES.VENDOR_DASHBOARD : ROUTES.VENDOR_LOGIN}
-            replace
-          />
-        }
-      />
+      <Route path="/vendor" element={<VendorEntryRedirect />} />
 
       <Route element={<RequireAdminAuth />}>
         <Route element={<AdminLayout />}>

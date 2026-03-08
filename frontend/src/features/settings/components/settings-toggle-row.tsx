@@ -6,6 +6,7 @@ export interface SettingsToggleRowProps {
   description: string
   enabled: boolean
   onToggle: (next: boolean) => void
+  disabled?: boolean
   className?: string
 }
 
@@ -14,6 +15,7 @@ export function SettingsToggleRow({
   description,
   enabled,
   onToggle,
+  disabled = false,
   className,
 }: SettingsToggleRowProps) {
   return (
@@ -27,8 +29,7 @@ export function SettingsToggleRow({
         <p className="text-base font-semibold text-app-text">{title}</p>
         <p className="text-sm text-app-muted">{description}</p>
       </div>
-      <Switch checked={enabled} onCheckedChange={onToggle} label={title} />
+      <Switch checked={enabled} onCheckedChange={onToggle} label={title} disabled={disabled} />
     </div>
   )
 }
-

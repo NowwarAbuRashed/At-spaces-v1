@@ -1,33 +1,84 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
+import { AppProviders } from '@/app/providers'
 import { VendorServicesPage } from '@/pages/vendor/vendor-services-page'
+import {
+  createJsonResponse,
+  mockFetch,
+  setVendorSession,
+  setupBrowserStorageMocks,
+} from '@/pages/vendor/test-utils'
 
 describe('VendorServicesPage', () => {
-  it('renders service cards and supports mock pricing/features updates', () => {
-    render(<VendorServicesPage />)
+  beforeEach(() => {
+    setupBrowserStorageMocks()
+    setVendorSession()
+  })
 
-    expect(screen.getByText('Services Management')).toBeInTheDocument()
-    expect(screen.getByText('Vendor Services')).toBeInTheDocument()
-    expect(screen.getByText('Premium Desk Slot')).toBeInTheDocument()
+  it('loads services and updates pricing through backend mutation', async () => {
+    let servicePrice = 25
+    let updatePayload: unknown = null
 
-    const priceInput = screen.getAllByDisplayValue('28')[0]
-    fireEvent.change(priceInput, { target: { value: '30' } })
-    expect(screen.getByDisplayValue('30')).toBeInTheDocument()
+    mockFetch(async (input, init) => {
+      const url = new URL(typeof input === 'string' ? input : input.toString())
+      const method = init?.method ?? 'GET'
 
-    fireEvent.change(screen.getAllByPlaceholderText('Feature name')[0], {
-      target: { value: 'Projector Access' },
-    })
-    fireEvent.change(screen.getAllByPlaceholderText('Short description')[0], {
-      target: { value: 'Portable projector included' },
-    })
-    fireEvent.change(screen.getAllByPlaceholderText('Quantity')[0], {
-      target: { value: '1' },
-    })
-    fireEvent.change(screen.getAllByPlaceholderText('Unit label')[0], {
-      target: { value: 'unit' },
-    })
-    fireEvent.click(screen.getAllByRole('button', { name: 'Add Feature' })[0])
+      if (url.pathname === '/api/vendors/vendor-services' && method === 'GET') {
+        return createJsonResponse({
+          items: [
+            {
+              vendorServiceId: 55,
+              serviceId: 1,
+              name: 'Hot Desk',
+              pricePerUnit: servicePrice,
+              priceUnit: 'hour',
+              maxCapacity: 40,
+              isAvailable: true,
+            },
+          ],
+          page: 1,
+          limit: 100,
+          total: 1,
+          hasNext: false,
+        })
+      }
 
-    expect(screen.getByText('Projector Access')).toBeInTheDocument()
+      if (url.pathname === '/api/vendors/vendor-services/55/price' && method === 'PUT') {
+        updatePayload = init?.body ? JSON.parse(String(init.body)) : null
+        const payload = updatePayload as { pricePerUnit: number; priceUnit: string }
+        servicePrice = payload.pricePerUnit
+        return createJsonResponse({
+          vendorServiceId: 55,
+          serviceId: 1,
+          name: 'Hot Desk',
+          pricePerUnit: servicePrice,
+          priceUnit: payload.priceUnit,
+          maxCapacity: 40,
+          isAvailable: true,
+        })
+      }
+
+      throw new Error(`Unhandled request in test: ${method} ${url.pathname}`)
+    })
+
+    render(
+      <AppProviders>
+        <MemoryRouter>
+          <VendorServicesPage />
+        </MemoryRouter>
+      </AppProviders>,
+    )
+
+    expect(await screen.findByText('Hot Desk')).toBeInTheDocument()
+    fireEvent.change(screen.getByDisplayValue('25'), { target: { value: '30' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save Pricing' }))
+
+    await waitFor(() => {
+      expect(updatePayload).toEqual({
+        pricePerUnit: 30,
+        priceUnit: 'hour',
+      })
+    })
   })
 })

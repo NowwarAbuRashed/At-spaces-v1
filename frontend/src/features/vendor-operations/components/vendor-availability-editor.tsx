@@ -14,6 +14,7 @@ export interface VendorAvailabilityEditorProps {
   initialValue: VendorAvailabilitySlotInput
   onClose: () => void
   onSubmit: (value: VendorAvailabilitySlotInput) => void
+  isSubmitting?: boolean
 }
 
 function hasInvalidTimeRange(startTime: string, endTime: string) {
@@ -31,6 +32,7 @@ export function VendorAvailabilityEditor({
   initialValue,
   onClose,
   onSubmit,
+  isSubmitting = false,
 }: VendorAvailabilityEditorProps) {
   const [formState, setFormState] = useState<VendorAvailabilitySlotInput>(initialValue)
   const [error, setError] = useState<string | null>(null)
@@ -40,6 +42,7 @@ export function VendorAvailabilityEditor({
       return
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormState(initialValue)
     setError(null)
   }, [initialValue, open])
@@ -64,13 +67,13 @@ export function VendorAvailabilityEditor({
       open={open}
       onClose={onClose}
       title={mode === 'add' ? 'Add Availability Slot' : 'Edit Availability Slot'}
-      description="Configure slot timing, service scope, and available units. Changes are local in this phase."
+      description="Configure slot timing, service scope, and available units."
       footer={
         <>
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave}>
+          <Button type="button" onClick={handleSave} isLoading={isSubmitting}>
             {mode === 'add' ? 'Add Slot' : 'Save Slot'}
           </Button>
         </>
@@ -84,6 +87,7 @@ export function VendorAvailabilityEditor({
               type="date"
               value={formState.date}
               onChange={(event) => setFormState((prev) => ({ ...prev, date: event.target.value }))}
+              disabled={isSubmitting}
             />
           </label>
 
@@ -92,6 +96,7 @@ export function VendorAvailabilityEditor({
             <select
               value={formState.serviceId}
               onChange={(event) => setFormState((prev) => ({ ...prev, serviceId: event.target.value }))}
+              disabled={isSubmitting}
               className="h-11 rounded-xl border border-app-border bg-app-surface-alt px-3 text-sm font-medium text-app-text outline-none transition-all focus:border-app-accent/60 focus:ring-2 focus:ring-app-accent/30"
             >
               {services.map((service) => (
@@ -110,6 +115,7 @@ export function VendorAvailabilityEditor({
               type="time"
               value={formState.startTime}
               onChange={(event) => setFormState((prev) => ({ ...prev, startTime: event.target.value }))}
+              disabled={isSubmitting}
             />
           </label>
 
@@ -119,6 +125,7 @@ export function VendorAvailabilityEditor({
               type="time"
               value={formState.endTime}
               onChange={(event) => setFormState((prev) => ({ ...prev, endTime: event.target.value }))}
+              disabled={isSubmitting}
             />
           </label>
         </div>
@@ -136,6 +143,7 @@ export function VendorAvailabilityEditor({
                   availableUnits: Number(event.target.value),
                 }))
               }
+              disabled={isSubmitting}
             />
           </label>
 
@@ -149,6 +157,7 @@ export function VendorAvailabilityEditor({
                   state: event.target.value as VendorAvailabilitySlotInput['state'],
                 }))
               }
+              disabled={isSubmitting}
               className="h-11 rounded-xl border border-app-border bg-app-surface-alt px-3 text-sm font-medium text-app-text outline-none transition-all focus:border-app-accent/60 focus:ring-2 focus:ring-app-accent/30"
             >
               <option value="active">Active</option>

@@ -1,8 +1,9 @@
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { LogoMark } from '@/components/shared/logo-mark'
 import { Button } from '@/components/ui/button'
-import { clearVendorSession } from '@/features/auth/store/vendor-session'
+import { useVendorAuth } from '@/features/auth/store/vendor-auth-context'
 import { vendorPrimaryNavItems, vendorSecondaryNavItems } from '@/features/navigation/vendor-nav-items'
 import { cn } from '@/lib/cn'
 import { ROUTES } from '@/lib/routes'
@@ -23,11 +24,22 @@ export function VendorSidebar({
   showCollapseControl = false,
 }: VendorSidebarProps) {
   const navigate = useNavigate()
+  const { signOut } = useVendorAuth()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
-  const handleSignOut = () => {
-    clearVendorSession()
-    navigate(ROUTES.VENDOR_LOGIN)
-    onNavigate?.()
+  const handleSignOut = async () => {
+    if (isSigningOut) {
+      return
+    }
+
+    setIsSigningOut(true)
+    try {
+      await signOut()
+      navigate(ROUTES.VENDOR_LOGIN)
+      onNavigate?.()
+    } finally {
+      setIsSigningOut(false)
+    }
   }
 
   return (
@@ -85,7 +97,10 @@ export function VendorSidebar({
           <button
             key={item.label}
             type="button"
-            onClick={handleSignOut}
+            onClick={() => {
+              void handleSignOut()
+            }}
+            disabled={isSigningOut}
             className={cn(
               'flex h-11 w-full items-center rounded-xl px-3 text-sm font-semibold transition-all',
               collapsed ? 'justify-center' : 'justify-start gap-3',

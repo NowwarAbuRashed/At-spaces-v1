@@ -26,7 +26,7 @@ export interface VendorAvailabilitySlotInput {
   state: VendorAvailabilitySlotState
 }
 
-export type VendorBookingStatus = 'confirmed' | 'pending' | 'completed' | 'no_show'
+export type VendorBookingStatus = 'confirmed' | 'pending' | 'completed' | 'no_show' | 'cancelled'
 
 export interface VendorBooking {
   id: string

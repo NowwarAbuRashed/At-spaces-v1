@@ -11,6 +11,7 @@ export interface VendorAvailabilitySlotCardProps {
   onEdit: (slotId: string) => void
   onRemove: (slotId: string) => void
   onToggleState: (slotId: string) => void
+  isUpdating?: boolean
 }
 
 export function VendorAvailabilitySlotCard({
@@ -19,6 +20,7 @@ export function VendorAvailabilitySlotCard({
   onEdit,
   onRemove,
   onToggleState,
+  isUpdating = false,
 }: VendorAvailabilitySlotCardProps) {
   return (
     <Card className="h-full">
@@ -39,7 +41,14 @@ export function VendorAvailabilitySlotCard({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="secondary" className="gap-1.5" onClick={() => onEdit(slot.id)}>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="gap-1.5"
+            onClick={() => onEdit(slot.id)}
+            disabled={isUpdating}
+          >
             <Pencil className="h-3.5 w-3.5" />
             Edit
           </Button>
@@ -48,6 +57,7 @@ export function VendorAvailabilitySlotCard({
             size="sm"
             variant="outline"
             onClick={() => onToggleState(slot.id)}
+            disabled={isUpdating}
           >
             {slot.state === 'active' ? 'Block Slot' : 'Activate Slot'}
           </Button>
@@ -57,6 +67,7 @@ export function VendorAvailabilitySlotCard({
             variant="ghost"
             className="gap-1.5 text-app-danger hover:text-app-danger"
             onClick={() => onRemove(slot.id)}
+            disabled={isUpdating}
           >
             <Trash2 className="h-3.5 w-3.5" />
             Remove

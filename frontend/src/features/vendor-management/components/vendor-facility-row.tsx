@@ -18,6 +18,7 @@ export interface VendorFacilityRowProps {
   onToggleAvailability: (id: string, nextValue: boolean) => void
   onDescriptionChange: (id: string, value: string) => void
   onDetailsChange: (id: string, value: string) => void
+  disabled?: boolean
 }
 
 export function VendorFacilityRow({
@@ -25,6 +26,7 @@ export function VendorFacilityRow({
   onToggleAvailability,
   onDescriptionChange,
   onDetailsChange,
+  disabled = false,
 }: VendorFacilityRowProps) {
   const Icon = facilityIconMap[facility.iconKey]
 
@@ -46,6 +48,7 @@ export function VendorFacilityRow({
           checked={facility.isAvailable}
           onCheckedChange={(checked) => onToggleAvailability(facility.id, checked)}
           label={`${facility.name} availability`}
+          disabled={disabled}
         />
       </div>
 
@@ -55,11 +58,16 @@ export function VendorFacilityRow({
           <Input
             value={facility.description}
             onChange={(event) => onDescriptionChange(facility.id, event.target.value)}
+            disabled={disabled}
           />
         </label>
         <label className="space-y-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-app-muted">Details</span>
-          <Input value={facility.details} onChange={(event) => onDetailsChange(facility.id, event.target.value)} />
+          <Input
+            value={facility.details}
+            onChange={(event) => onDetailsChange(facility.id, event.target.value)}
+            disabled={disabled}
+          />
         </label>
       </div>
     </div>
